@@ -25,7 +25,7 @@ const persistStoreKey = {
   version: "1.0",
 };
 
-export function AppLayout() {
+export function AdminLayout() {
   const apiRef = useRef<TabsApi>();
   const navigate = useNavigate();
   const { router } = useDataRouterContext();

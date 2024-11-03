@@ -13,7 +13,7 @@ import {
   CategoryListRoute,
 } from "./routes/CategoriesRoute.tsx";
 import { SuppliersRoute } from "./routes/SuppliersRoute.tsx";
-import { AppLayout } from "./components/AppLayout/AppLayout.tsx";
+import { AdminLayout } from "src/examples/clip-one/components/AdminLayout/AdminLayout.tsx";
 import {
   homeRoute,
   categoriesRoute,
@@ -121,7 +121,7 @@ const dashboard = {
 export const clipOneRoutes = [
   {
     path: homeRoute,
-    element: <AppLayout />,
+    element: <AdminLayout />,
     children: [
       {
         index: true,

@@ -21,7 +21,7 @@ const persistStoreKey = {
   version: "1.0",
 };
 
-export function AppLayout() {
+export function AdminLayout() {
   const navigate = useNavigate();
   const { router } = useDataRouterContext();
 

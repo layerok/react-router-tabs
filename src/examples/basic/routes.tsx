@@ -12,7 +12,7 @@ import {
 } from "src/examples/basic/routes/CategoriesRoute.tsx";
 import { SuppliersRoute } from "src/examples/basic/routes/SuppliersRoute.tsx";
 import { Handle } from "src/lib/tabs";
-import { AppLayout } from "src/examples/basic/components/AppLayout/AppLayout.tsx";
+import { AdminLayout } from "src/examples/basic/components/AdminLayout/AdminLayout.tsx";
 import {
   homeRoute,
   categoriesRoute,
@@ -143,7 +143,7 @@ const supplierRoutes = [
 export const basicExampleRoutes = [
   {
     path: homeRoute,
-    element: <AppLayout />,
+    element: <AdminLayout />,
     children: [
       {
         index: true,
