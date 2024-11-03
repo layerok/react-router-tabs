@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 
 import { routeIds } from "../routes.tsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -59,7 +59,6 @@ export function CategoriesRoute() {
     categoriesListRoute,
   ]);
 
-  const navigate = useNavigate();
   const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config: useMemo(
@@ -67,9 +66,7 @@ export function CategoriesRoute() {
         convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Categories),
       [router],
     ),
-    onCloseAllTabs: () => {
-      navigate(homeRoute);
-    },
+    fallbackPath: homeRoute,
     endPinnedTabs: useMemo(() => [], []),
     startPinnedTabs,
     tabs,

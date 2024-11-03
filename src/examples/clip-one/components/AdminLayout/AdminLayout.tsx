@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar.tsx";
 import { Tabs } from "../Tabs/Tabs.tsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -22,7 +21,6 @@ const persistStoreKey = {
 };
 
 export function AdminLayout() {
-  const navigate = useNavigate();
   const { router } = useDataRouterContext();
 
   const { getTabsFromStorage, persistTabs } =
@@ -67,9 +65,7 @@ export function AdminLayout() {
     endPinnedTabs: useMemo(() => [], []),
     onTabsChange: setTabs,
     startPinnedTabs,
-    onCloseAllTabs: () => {
-      navigate(homeRoute);
-    },
+    fallbackPath: homeRoute,
     resolveTabMeta: useCallback(() => ({}), []),
   });
 

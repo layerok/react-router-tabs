@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../../components/Sidebar/Sidebar.tsx";
 import { Tabs } from "../../components/Tabs/Tabs.tsx";
 
@@ -27,7 +26,6 @@ const persistStoreKey = {
 
 export function AdminLayout() {
   const apiRef = useRef<TabsApi>();
-  const navigate = useNavigate();
   const { router } = useDataRouterContext();
 
   const { getTabsFromStorage, persistTabs } =
@@ -52,9 +50,7 @@ export function AdminLayout() {
       () => convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Main),
       [router],
     ),
-    onCloseAllTabs: () => {
-      navigate(homeRoute);
-    },
+    fallbackPath: homeRoute,
     resolveTabMeta: useCallback(() => ({}), []),
   });
 

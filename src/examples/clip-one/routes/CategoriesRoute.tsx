@@ -82,16 +82,13 @@ export function CategoriesRoute() {
 
   const [endPinnedTabs] = useState<string[]>([]);
 
-  const navigate = useNavigate();
   const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config: useMemo(
       () => [listTabDef, detailTabDef],
       [listTabDef, detailTabDef],
     ),
-    onCloseAllTabs: () => {
-      navigate(homeRoute);
-    },
+    fallbackPath: homeRoute,
     endPinnedTabs,
     startPinnedTabs,
     tabs,

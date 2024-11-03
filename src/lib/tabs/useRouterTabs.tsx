@@ -44,12 +44,13 @@ export const useRouterTabs = <
   tabs: TabModel<TabbedNavigationMeta & Meta>[];
   startPinnedTabs: string[];
   endPinnedTabs: string[];
-  onCloseAllTabs: () => void;
+  onEscape?: (id: string | undefined) => void;
   resolveTabMeta: (match: AgnosticDataRouteMatch) => Meta;
+  fallbackPath: string;
 }) => {
   const {
     resolveTabMeta,
-    onCloseAllTabs,
+    fallbackPath,
     onTabsChange,
     tabs = [],
     startPinnedTabs,
@@ -146,12 +147,7 @@ export const useRouterTabs = <
     if (tab) {
       router.navigate(pathToLocation(tab.meta.path));
     } else {
-      // todo: improve naming
-      // this callback can be called not necessary when all tabs are closed
-      // it can be called when there are open tabs
-      // For example. you can call setActiveTabId(undefined) when you have opened tabs
-      // it is more like onNoActiveTab or onNavigateOutsideOfAnyTab or onActiveTabAbsent
-      onCloseAllTabs?.();
+      router.navigate(fallbackPath);
     }
   };
 

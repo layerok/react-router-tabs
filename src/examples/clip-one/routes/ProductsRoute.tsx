@@ -30,7 +30,6 @@ const persistStoreKey = {
 };
 
 export function ProductsRoute() {
-  const navigate = useNavigate();
   const { router } = useDataRouterContext();
   const { getTabsFromStorage, persistTabs } =
     usePersistTabs<TabbedNavigationMeta>({
@@ -93,9 +92,7 @@ export function ProductsRoute() {
   const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config,
-    onCloseAllTabs: useCallback(() => {
-      navigate(homeRoute);
-    }, [navigate]),
+    fallbackPath: homeRoute,
     startPinnedTabs,
     tabs,
     endPinnedTabs,
@@ -230,7 +227,7 @@ export function ProductDetailRoute() {
   const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config,
-    onCloseAllTabs: useCallback(() => {}, []),
+    fallbackPath: homeRoute,
     tabs,
     startPinnedTabs: useMemo(() => [], []),
     endPinnedTabs: useMemo(() => [], []),

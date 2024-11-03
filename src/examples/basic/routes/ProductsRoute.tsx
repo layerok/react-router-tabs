@@ -5,7 +5,7 @@ import {
   TabModel,
 } from "src/lib/tabs";
 
-import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { routeIds } from "../routes.tsx";
 
@@ -28,7 +28,6 @@ const persistStoreKey = {
 };
 
 export function ProductsRoute() {
-  const navigate = useNavigate();
   const { router } = useDataRouterContext();
   const { getTabsFromStorage, persistTabs } =
     usePersistTabs<TabbedNavigationMeta>({
@@ -63,9 +62,7 @@ export function ProductsRoute() {
         convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Products),
       [router],
     ),
-    onCloseAllTabs: useCallback(() => {
-      navigate(homeRoute);
-    }, [navigate]),
+    fallbackPath: homeRoute,
     startPinnedTabs,
     endPinnedTabs: useMemo(() => [], []),
     tabs,
