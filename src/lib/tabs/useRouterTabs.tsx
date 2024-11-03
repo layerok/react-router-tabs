@@ -44,7 +44,6 @@ export const useRouterTabs = <
   tabs: TabModel<TabbedNavigationMeta & Meta>[];
   startPinnedTabs: string[];
   endPinnedTabs: string[];
-  onEscape?: (id: string | undefined) => void;
   resolveTabMeta: (match: AgnosticDataRouteMatch) => Meta;
   fallbackPath: string;
 }) => {
