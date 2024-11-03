@@ -1,4 +1,4 @@
-import { Outlet, useMatches, useNavigate } from "react-router-dom";
+import { Outlet, useMatches } from "react-router-dom";
 import { useCallback, useEffect } from "react";
 import { RouterState, AgnosticDataRouteMatch } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
@@ -68,16 +68,15 @@ export const useDynamicRouterTabs = <
 
   // todo: validate tabs
 
-  const navigate = useNavigate();
-
   const setActiveTabId = (id: string | undefined) => {
     const tab = tabs.find((tab) => tab.id === id);
     if (tab) {
-      navigate(pathToLocation(tab.meta.path));
+      router.navigate(pathToLocation(tab.meta.path));
     } else {
       onCloseAllTabs?.();
     }
   };
+
   const updateTabs = useCallback(
     (state: RouterState) => {
       const { matches, location, navigation } = state;
