@@ -7,8 +7,8 @@ import {
   InsertMethod,
   TabbedNavigationMeta,
   TabConfig,
-  useDynamicRouterTabs,
-} from "src/lib/tabs/useDynamicRouterTabs.tsx";
+  useRouterTabs,
+} from "src/lib/tabs/useRouterTabs.tsx";
 import { data as categories } from "../data/categories.json";
 
 import { TabModel } from "src/lib/tabs";
@@ -83,7 +83,7 @@ export function CategoriesRoute() {
   const [endPinnedTabs] = useState<string[]>([]);
 
   const navigate = useNavigate();
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config: useMemo(
       () => [listTabDef, detailTabDef],

@@ -12,10 +12,7 @@ import {
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
-import {
-  InsertMethod,
-  useDynamicRouterTabs,
-} from "src/lib/tabs/useDynamicRouterTabs.tsx";
+import { InsertMethod, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { routeIds } from "../../routes.tsx";
 import { css } from "@emotion/react";
 
@@ -63,7 +60,7 @@ export function AppLayout() {
     },
   ]);
 
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config,
     tabs,

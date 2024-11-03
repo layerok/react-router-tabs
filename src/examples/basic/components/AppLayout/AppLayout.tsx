@@ -18,7 +18,7 @@ import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
-import { useDynamicRouterTabs } from "src/lib/tabs/useDynamicRouterTabs.tsx";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "basic__main-tabs",
@@ -42,7 +42,7 @@ export function AppLayout() {
 
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([]);
 
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     tabs,
     onTabsChange: setTabs,

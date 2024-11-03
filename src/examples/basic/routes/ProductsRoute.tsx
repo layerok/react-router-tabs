@@ -20,7 +20,7 @@ import {
   productsListRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
-import { useDynamicRouterTabs } from "src/lib/tabs/useDynamicRouterTabs.tsx";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "basic__product-tabs",
@@ -56,7 +56,7 @@ export function ProductsRoute() {
     productsListRoute,
   ]);
 
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config: useMemo(
       () =>

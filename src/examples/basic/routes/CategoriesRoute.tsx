@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import {
   TabbedNavigationMeta,
-  useDynamicRouterTabs,
-} from "src/lib/tabs/useDynamicRouterTabs.tsx";
+  useRouterTabs,
+} from "src/lib/tabs/useRouterTabs.tsx";
 
 import { convertRouteTreeToConfig, TabModel } from "src/lib/tabs";
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
@@ -59,7 +59,7 @@ export function CategoriesRoute() {
   ]);
 
   const navigate = useNavigate();
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config: useMemo(
       () =>

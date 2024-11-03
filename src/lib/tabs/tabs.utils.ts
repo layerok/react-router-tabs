@@ -1,6 +1,6 @@
 import { RouteObject } from "react-router-dom";
 import { Handle } from "src/lib/tabs/tabs.types.ts";
-import { InsertMethod, TabConfig } from "src/lib/tabs/useDynamicRouterTabs";
+import { InsertMethod, TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
 
 type FlatRouteObject = RouteObject & { parentRoute: RouteObject | undefined };
 

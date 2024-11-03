@@ -17,10 +17,7 @@ import {
   productsCreateRoute,
   productsListRoute,
 } from "../constants/routes.constants.ts";
-import {
-  InsertMethod,
-  useDynamicRouterTabs,
-} from "src/lib/tabs/useDynamicRouterTabs.tsx";
+import { InsertMethod, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 import { Button } from "src/examples/clip-one/components/Button/Button.tsx";
@@ -93,7 +90,7 @@ export function ProductsRoute() {
     createTabDefinition,
   ]);
 
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config,
     onCloseAllTabs: useCallback(() => {
@@ -230,7 +227,7 @@ export function ProductDetailRoute() {
     [],
   );
 
-  const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+  const { activeTabId, setActiveTabId } = useRouterTabs({
     router,
     config,
     onCloseAllTabs: useCallback(() => {}, []),
