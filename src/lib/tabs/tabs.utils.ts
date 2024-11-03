@@ -1,6 +1,4 @@
 import { RouteObject } from "react-router-dom";
-import { Handle } from "src/lib/tabs/tabs.types.ts";
-import { InsertMethod, TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
 
 type FlatRouteObject = RouteObject & { parentRoute: RouteObject | undefined };
 
@@ -37,26 +35,6 @@ export const pathToLocation = (path: string) => {
     pathname,
     search,
   };
-};
-
-export const convertRouteTreeToConfig = (tree: RouteObject[], key: string) => {
-  const flatRoutes = flattenRoutes(tree);
-
-  const matchedRoutes = flatRoutes.filter((route) => {
-    return (route.handle as Handle)?.tabs.find((tab) => tab.key === key);
-  });
-
-  const config: TabConfig<any>[] = matchedRoutes.map((route) => {
-    const handle = route.handle as Handle;
-    const tabMeta = handle.tabs.find((tab) => (tab.key = key));
-
-    return {
-      title: tabMeta!.title,
-      routeId: route.id!,
-      insertMethod: InsertMethod.Prepend,
-    };
-  });
-  return config;
 };
 
 export const replacePathParams = (

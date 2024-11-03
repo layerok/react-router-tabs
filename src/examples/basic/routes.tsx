@@ -11,7 +11,6 @@ import {
   CategoryListRoute,
 } from "src/examples/basic/routes/CategoriesRoute.tsx";
 import { SuppliersRoute } from "src/examples/basic/routes/SuppliersRoute.tsx";
-import { Handle } from "src/lib/tabs";
 import { AdminLayout } from "src/examples/basic/components/AdminLayout/AdminLayout.tsx";
 import {
   homeRoute,
@@ -21,6 +20,7 @@ import {
   productsRoute,
   suppliersRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
+import { Handle } from "src/examples/basic/types.ts";
 
 export const routeIds = {
   product: {

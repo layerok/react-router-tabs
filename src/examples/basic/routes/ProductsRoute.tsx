@@ -1,6 +1,5 @@
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import {
-  convertRouteTreeToConfig,
   replacePathParams,
   TabbedNavigationMeta,
   TabModel,
@@ -21,6 +20,7 @@ import {
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
 import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import { convertRouteTreeToConfig } from "src/examples/basic/utils.ts";
 
 const persistStoreKey = {
   name: "basic__product-tabs",

@@ -8,7 +8,7 @@ import {
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 
-import { convertRouteTreeToConfig, TabModel } from "src/lib/tabs";
+import { TabModel } from "src/lib/tabs";
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabs } from "src/lib/tabs";
@@ -19,6 +19,7 @@ import {
   categoryDetailRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
+import { convertRouteTreeToConfig } from "src/examples/basic/utils.ts";
 
 const persistStoreKey = {
   name: "basic__category-tabs",

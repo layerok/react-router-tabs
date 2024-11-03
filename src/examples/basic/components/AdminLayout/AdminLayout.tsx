@@ -6,7 +6,6 @@ import { TabStoreKey } from "../../constants/tabs.constants.ts";
 import {
   TabbedNavigationMeta,
   TabsApi,
-  convertRouteTreeToConfig,
   validateTabs,
   usePersistTabs,
 } from "src/lib/tabs";
@@ -19,6 +18,7 @@ import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import { convertRouteTreeToConfig } from "src/examples/basic/utils.ts";
 
 const persistStoreKey = {
   name: "basic__main-tabs",
