@@ -1,4 +1,4 @@
-import { matchRoutes, Outlet } from "react-router-dom";
+import { DataRouteMatch, matchRoutes, Outlet } from "react-router-dom";
 import { useCallback, useEffect } from "react";
 import { RouterState, AgnosticDataRouteMatch } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
@@ -68,21 +68,23 @@ export const useRouterTabs = <
         return;
       }
 
-      const pairs = matches
-        .slice()
-        .reverse()
-        .map((match) => {
-          const def = config.find(
-            (tabDef) => tabDef.routeId === match.route.id,
-          );
-          return [def, match];
-        })
-        .filter(([def]) => !!def) as unknown as [
-        TabConfig,
-        AgnosticDataRouteMatch,
-      ][];
+      let def: TabConfig<any> | undefined = undefined;
+      let match: DataRouteMatch | undefined = undefined;
 
-      pairs.forEach(([def, match]) => {
+      // start from last match, the most specific one
+      for (let i = matches.length - 1; i > -1; i--) {
+        const currentMatch = matches[i];
+        const definition = config.find(
+          (tabDef) => tabDef.routeId === currentMatch.route.id,
+        );
+        if (definition) {
+          def = definition;
+          match = currentMatch;
+          break;
+        }
+      }
+
+      if (def && match) {
         onTabsChange?.((prevTabs) => {
           const tab = prevTabs.find((tab) => tab.id === match.pathname);
 
@@ -128,7 +130,7 @@ export const useRouterTabs = <
             }
           }
         });
-      });
+      }
     },
     [resolveTabMeta, startPinnedTabs, config, onTabsChange, endPinnedTabs],
   );

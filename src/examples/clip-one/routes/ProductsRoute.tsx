@@ -234,7 +234,7 @@ export function ProductDetailRoute() {
     tabs,
     startPinnedTabs: useMemo(() => [], []),
     endPinnedTabs: useMemo(() => [], []),
-    onTabsChange: useCallback(() => {}, []),
+    onTabsChange: setTabs,
     resolveTabMeta: useCallback(() => ({}), []),
   });
 
