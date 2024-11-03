@@ -1,4 +1,4 @@
-import { Outlet, useMatches } from "react-router-dom";
+import { matchRoutes, Outlet } from "react-router-dom";
 import { useCallback, useEffect } from "react";
 import { RouterState, AgnosticDataRouteMatch } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
@@ -73,6 +73,11 @@ export const useDynamicRouterTabs = <
     if (tab) {
       router.navigate(pathToLocation(tab.meta.path));
     } else {
+      // todo: improve naming
+      // this callback can be called not necessary when all tabs are closed
+      // it can be called when there are open tabs
+      // For example. you can call setActiveTabId(undefined) when you have opened tabs
+      // it is more like onNoActiveTab or onNavigateOutsideOfAnyTab or onActiveTabAbsent
       onCloseAllTabs?.();
     }
   };
@@ -160,13 +165,13 @@ export const useDynamicRouterTabs = <
     return router.subscribe(updateTabs);
   }, [router, updateTabs]);
 
-  const matches = useMatches();
+  const matches = matchRoutes(router.routes, router.state.location) || [];
 
   const activeTabId = matches
     .slice()
     .reverse()
     .find((match) => {
-      return config.find((def) => def.routeId === match.id);
+      return config.find((def) => def.routeId === match.route.id);
     })?.pathname;
 
   return {
