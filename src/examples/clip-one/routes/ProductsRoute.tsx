@@ -84,6 +84,7 @@ export function ProductsRoute() {
   const [startPinnedTabs, setStartPinnedTabs] = useState<string[]>([
     productsListRoute,
   ]);
+
   const [endPinnedTabs, setEndPinnedTabs] = useState<string[]>([]);
 
   const [config] = useState(() => [
@@ -216,19 +217,17 @@ export function ProductDetailRoute() {
   const config = useMemo(
     () => [
       {
-        title: () => generalTab.title,
-        id: generalTab.id,
-        routeId: generalTab.meta.routeId,
+        title: () => "General",
+        routeId: routeIds.product.detail,
         insertMethod: InsertMethod.Prepend,
       },
       {
-        title: () => settingsTab.title,
-        id: settingsTab.id,
-        routeId: settingsTab.meta.routeId,
+        title: () => "Settings",
+        routeId: routeIds.product.tabs.settings,
         insertMethod: InsertMethod.Prepend,
       },
     ],
-    [settingsTab, generalTab],
+    [],
   );
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({

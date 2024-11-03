@@ -4,13 +4,11 @@ import { routeIds } from "../routes.tsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import {
-  InsertMethod,
   TabbedNavigationMeta,
-  TabConfig,
   useDynamicRouterTabs,
 } from "src/lib/tabs/useDynamicRouterTabs.tsx";
 
-import { TabModel } from "src/lib/tabs";
+import { convertRouteTreeToConfig, TabModel } from "src/lib/tabs";
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabs } from "src/lib/tabs";
@@ -20,8 +18,7 @@ import {
   categoriesListRoute,
   categoryDetailRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
-
-type DetailTabParams = { id: string };
+import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
 
 const persistStoreKey = {
   name: "basic__category-tabs",
@@ -30,19 +27,6 @@ const persistStoreKey = {
 
 export function CategoriesRoute() {
   const { router } = useDataRouterContext();
-  const [listTabDef] = useState(() => ({
-    title: () => "List",
-    id: categoriesListRoute,
-    routeId: routeIds.category.list,
-    insertMethod: InsertMethod.Prepend,
-  }));
-
-  const [detailTab] = useState<TabConfig<DetailTabParams>>(() => ({
-    title: ({ params }) => `Category ${params.id}`,
-    id: ({ params }) => categoryDetailRoute.replace(":id", params.id),
-    routeId: routeIds.category.detail,
-    insertMethod: InsertMethod.Prepend,
-  }));
 
   const { getTabsFromStorage, persistTabs } =
     usePersistTabs<TabbedNavigationMeta>({
@@ -52,11 +36,11 @@ export function CategoriesRoute() {
 
   const defaultTabs: TabModel<TabbedNavigationMeta>[] = [
     {
-      id: listTabDef.id,
+      id: categoriesListRoute,
       title: "List",
       content: <Outlet />,
       meta: {
-        routeId: listTabDef.id,
+        routeId: routeIds.category.list,
         path: "",
       },
     },
@@ -71,13 +55,17 @@ export function CategoriesRoute() {
   }, [tabs, persistTabs]);
 
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([
-    listTabDef.id,
+    categoriesListRoute,
   ]);
 
   const navigate = useNavigate();
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
     router,
-    config: useMemo(() => [listTabDef, detailTab], [listTabDef, detailTab]),
+    config: useMemo(
+      () =>
+        convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Categories),
+      [router],
+    ),
     onCloseAllTabs: () => {
       navigate(homeRoute);
     },

@@ -13,16 +13,8 @@ export type TabbedNavigationMeta = {
 
 type ValidParams = Record<string, unknown>;
 
-type ValidID<Params extends ValidParams = ValidParams> =
-  | string
-  | { (props: { params: Params }): string };
-
-export type TabConfig<
-  Params extends ValidParams = ValidParams,
-  ID extends ValidID<Params> = ValidID<Params>,
-> = {
+export type TabConfig<Params extends ValidParams = ValidParams> = {
   routeId: string;
-  id: ID;
   insertMethod: InsertMethod;
   title: ({ params }: { params: Params }) => string;
 };
@@ -68,20 +60,6 @@ export const useDynamicRouterTabs = <
 
   // todo: validate tabs
 
-  const setActiveTabId = (id: string | undefined) => {
-    const tab = tabs.find((tab) => tab.id === id);
-    if (tab) {
-      router.navigate(pathToLocation(tab.meta.path));
-    } else {
-      // todo: improve naming
-      // this callback can be called not necessary when all tabs are closed
-      // it can be called when there are open tabs
-      // For example. you can call setActiveTabId(undefined) when you have opened tabs
-      // it is more like onNoActiveTab or onNavigateOutsideOfAnyTab or onActiveTabAbsent
-      onCloseAllTabs?.();
-    }
-  };
-
   const updateTabs = useCallback(
     (state: RouterState) => {
       const { matches, location, navigation } = state;
@@ -106,11 +84,7 @@ export const useDynamicRouterTabs = <
 
       pairs.forEach(([def, match]) => {
         onTabsChange?.((prevTabs) => {
-          const tab = prevTabs.find(
-            (tab) =>
-              tab.id ===
-              (typeof def.id === "function" ? def.id(match) : def.id),
-          );
+          const tab = prevTabs.find((tab) => tab.id === match.pathname);
 
           const { pathname } = last(matches);
           const { search } = location;
@@ -132,7 +106,7 @@ export const useDynamicRouterTabs = <
             const prepend = def.insertMethod === InsertMethod.Prepend;
 
             const newTab: TabModel<TabbedNavigationMeta & Meta> = {
-              id: typeof def.id === "function" ? def.id(match) : def.id,
+              id: match.pathname,
               title: def.title(match),
               content: <Outlet />,
               meta: {
@@ -164,6 +138,20 @@ export const useDynamicRouterTabs = <
     updateTabs(router.state);
     return router.subscribe(updateTabs);
   }, [router, updateTabs]);
+
+  const setActiveTabId = (id: string | undefined) => {
+    const tab = tabs.find((tab) => tab.id === id);
+    if (tab) {
+      router.navigate(pathToLocation(tab.meta.path));
+    } else {
+      // todo: improve naming
+      // this callback can be called not necessary when all tabs are closed
+      // it can be called when there are open tabs
+      // For example. you can call setActiveTabId(undefined) when you have opened tabs
+      // it is more like onNoActiveTab or onNavigateOutsideOfAnyTab or onActiveTabAbsent
+      onCloseAllTabs?.();
+    }
+  };
 
   const matches = matchRoutes(router.routes, router.state.location) || [];
 

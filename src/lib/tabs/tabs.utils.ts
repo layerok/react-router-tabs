@@ -50,13 +50,7 @@ export const convertRouteTreeToConfig = (tree: RouteObject[], key: string) => {
     const handle = route.handle as Handle;
     const tabMeta = handle.tabs.find((tab) => (tab.key = key));
 
-    const id: TabConfig<any>["id"] = !route.index
-      ? ({ params }) => replacePathParams(route.path!, params)
-      : ({ params }) =>
-          replacePathParams(route.parentRoute!.path!, params) + "/";
-
     return {
-      id,
       title: tabMeta!.title,
       routeId: route.id!,
       insertMethod: InsertMethod.Prepend,

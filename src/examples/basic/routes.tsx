@@ -57,7 +57,7 @@ const productRoutes = [
           tabs: [
             {
               key: TabStoreKey.Products,
-              title: () => "list",
+              title: () => "All products",
             },
           ],
         } as Handle,
@@ -98,11 +98,28 @@ const categoryRoutes = [
         id: routeIds.category.list,
         index: true,
         element: <CategoryListRoute />,
+        handle: {
+          tabs: [
+            {
+              key: TabStoreKey.Categories,
+              title: () => "All categories",
+            },
+          ],
+        } as Handle,
       },
       {
         id: routeIds.category.detail,
         path: categoryDetailRoute,
         element: <CategoryDetailRoute />,
+        handle: {
+          tabs: [
+            {
+              key: TabStoreKey.Categories,
+              title: ({ params }: { params: { id: string } }) =>
+                `category ${params.id}`,
+            },
+          ],
+        } as Handle,
       },
     ],
   },

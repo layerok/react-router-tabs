@@ -11,13 +11,7 @@ import {
 } from "src/lib/tabs";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
-import {
-  categoriesRoute,
-  dashboardRoute,
-  homeRoute,
-  productsRoute,
-  suppliersRoute,
-} from "../../constants/routes.constants.ts";
+import { homeRoute } from "../../constants/routes.constants.ts";
 import {
   InsertMethod,
   useDynamicRouterTabs,
@@ -49,25 +43,21 @@ export function AppLayout() {
   const [config] = useState(() => [
     {
       title: () => "Dashboard",
-      id: dashboardRoute,
       routeId: routeIds.dashboard,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Categories",
-      id: categoriesRoute,
       routeId: routeIds.category.layout,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Products",
-      id: productsRoute,
       routeId: routeIds.product.layout,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Suppliers",
-      id: suppliersRoute,
       routeId: routeIds.supplier.layout,
       insertMethod: InsertMethod.Prepend,
     },

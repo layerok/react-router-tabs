@@ -35,7 +35,6 @@ export function CategoriesRoute() {
   const { router } = useDataRouterContext();
   const [listTabDef] = useState(() => ({
     title: () => "All Categories",
-    id: categoriesListRoute,
     routeId: routeIds.category.list,
     insertMethod: InsertMethod.Prepend,
   }));
@@ -47,7 +46,6 @@ export function CategoriesRoute() {
       );
       return category!.title;
     },
-    id: ({ params }) => categoryDetailRoute.replace(":id", params.id),
     routeId: routeIds.category.detail,
     insertMethod: InsertMethod.Prepend,
   }));
@@ -60,12 +58,12 @@ export function CategoriesRoute() {
 
   const defaultTabs: TabModel<TabbedNavigationMeta>[] = [
     {
-      id: listTabDef.id,
+      id: categoriesListRoute,
       title: "List",
       content: <Outlet />,
       meta: {
-        routeId: listTabDef.id,
-        path: "",
+        routeId: routeIds.category.list,
+        path: categoriesListRoute,
       },
     },
   ];
@@ -79,7 +77,7 @@ export function CategoriesRoute() {
   }, [tabs, persistTabs]);
 
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([
-    listTabDef.id,
+    categoriesListRoute,
   ]);
 
   const [endPinnedTabs] = useState<string[]>([]);
