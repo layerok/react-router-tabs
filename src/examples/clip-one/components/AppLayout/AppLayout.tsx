@@ -74,6 +74,7 @@ export function AppLayout() {
   ]);
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     config,
     tabs,
     endPinnedTabs: useMemo(() => [], []),

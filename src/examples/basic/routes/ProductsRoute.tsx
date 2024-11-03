@@ -57,6 +57,7 @@ export function ProductsRoute() {
   ]);
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     config: useMemo(
       () =>
         convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Products),

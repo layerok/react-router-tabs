@@ -93,6 +93,7 @@ export function ProductsRoute() {
   ]);
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     config,
     onCloseAllTabs: useCallback(() => {
       navigate(homeRoute);
@@ -177,6 +178,7 @@ const layoutStyles = css`
 
 export function ProductDetailRoute() {
   const params = useParams() as DetailParams;
+  const { router } = useDataRouterContext();
 
   const generalTab = useMemo<TabModel<TabbedNavigationMeta>>(
     () => ({
@@ -230,6 +232,7 @@ export function ProductDetailRoute() {
   );
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     config,
     onCloseAllTabs: useCallback(() => {}, []),
     tabs,

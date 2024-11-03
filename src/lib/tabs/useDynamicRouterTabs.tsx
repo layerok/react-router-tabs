@@ -1,10 +1,10 @@
-import { useDataRouterContext } from "../../hooks/useDataRouterContext.tsx";
 import { Outlet, useMatches, useNavigate } from "react-router-dom";
 import { useCallback, useEffect } from "react";
 import { RouterState, AgnosticDataRouteMatch } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
 import { TabModel, ValidTabMeta } from "src/lib/tabs/tabs.types.ts";
 import { pathToLocation } from "src/lib/tabs/tabs.utils.ts";
+import { Router } from "@remix-run/router";
 
 export type TabbedNavigationMeta = {
   path: string;
@@ -46,6 +46,7 @@ export const useDynamicRouterTabs = <
   Meta extends ValidTabMeta = ValidTabMeta,
   Params extends ValidParams = ValidParams,
 >(options: {
+  router: Router;
   config: TabConfig<Params>[];
   onTabsChange?: TabsChangeCallback<Meta>;
   tabs: TabModel<TabbedNavigationMeta & Meta>[];
@@ -62,11 +63,11 @@ export const useDynamicRouterTabs = <
     startPinnedTabs,
     endPinnedTabs,
     config,
+    router,
   } = options;
 
   // todo: validate tabs
 
-  const { router } = useDataRouterContext();
   const navigate = useNavigate();
 
   const setActiveTabId = (id: string | undefined) => {

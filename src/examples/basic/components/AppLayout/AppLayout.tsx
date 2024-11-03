@@ -43,6 +43,7 @@ export function AppLayout() {
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([]);
 
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     tabs,
     onTabsChange: setTabs,
     startPinnedTabs,

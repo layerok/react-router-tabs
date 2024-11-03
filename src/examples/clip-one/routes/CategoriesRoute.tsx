@@ -86,6 +86,7 @@ export function CategoriesRoute() {
 
   const navigate = useNavigate();
   const { activeTabId, setActiveTabId } = useDynamicRouterTabs({
+    router,
     config: useMemo(
       () => [listTabDef, detailTabDef],
       [listTabDef, detailTabDef],
