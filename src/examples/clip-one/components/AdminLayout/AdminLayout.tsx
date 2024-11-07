@@ -1,33 +1,30 @@
 import { Sidebar } from "../Sidebar/Sidebar.tsx";
 import { Tabs } from "../Tabs/Tabs.tsx";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 
-import {
-  validateTabs,
-  usePersistTabs,
-  TabbedNavigationMeta,
-} from "src/lib/tabs";
+import { validateTabs, usePersistTabs } from "src/lib/tabs";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { InsertMethod, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { routeIds } from "../../routes.tsx";
 import { css } from "@emotion/react";
+import { Outlet } from "react-router-dom";
+import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 const persistStoreKey = {
   name: "clip-one__main-tabs",
-  version: "1.0",
+  version: "2.0",
 };
 
 export function AdminLayout() {
   const { router } = useDataRouterContext();
 
-  const { getTabsFromStorage, persistTabs } =
-    usePersistTabs<TabbedNavigationMeta>({
-      storage: localStorageDriver,
-      storageKey: persistStoreKey,
-    });
+  const { getTabsFromStorage, persistTabs } = usePersistTabs({
+    storage: localStorageDriver,
+    storageKey: persistStoreKey,
+  });
 
   const [tabs, setTabs] = useState(() =>
     validateTabs(getTabsFromStorage() || [], router.routes.slice()),
@@ -58,7 +55,7 @@ export function AdminLayout() {
     },
   ]);
 
-  const { activeTabId, setActiveTabId } = useRouterTabs({
+  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
     router,
     config,
     tabs,
@@ -66,12 +63,34 @@ export function AdminLayout() {
     onTabsChange: setTabs,
     startPinnedTabs,
     fallbackPath: homeRoute,
-    resolveTabMeta: useCallback(() => ({}), []),
   });
 
   useEffect(() => {
     return persistTabs(tabs);
   }, [tabs, persistTabs]);
+
+  const uiTabs: TabModel[] = tabs.map((tab) => {
+    return {
+      id: tab.id,
+      content: <Outlet />,
+      title: getTabTitleByTabPath(tab.path)!,
+      isClosable: false,
+    };
+  });
+
+  const setUiTabs = (uiTabs: TabModel[]) => {
+    setTabs(
+      uiTabs.map((uiTab) => {
+        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
+
+        return {
+          id: uiTab.id,
+          route: routerTab!.route,
+          path: routerTab!.path,
+        };
+      }),
+    );
+  };
 
   return (
     <div css={layoutStyles}>
@@ -81,12 +100,12 @@ export function AdminLayout() {
         <div css={contentStyles}>
           <div css={tabsStyles}>
             <Tabs
-              tabs={tabs}
-              onTabsChange={setTabs}
+              tabs={uiTabs}
+              onTabsChange={setUiTabs}
               onStartPinnedTabsChange={setStartPinnedTabsChange}
               startPinnedTabs={startPinnedTabs}
               initialActiveTabId={activeTabId}
-              initialTabs={tabs}
+              initialTabs={uiTabs}
               initialStartPinnedTabs={startPinnedTabs}
               hasControlledActiveTabId
               activeTabId={activeTabId}

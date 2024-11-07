@@ -1,9 +1,12 @@
 import { useRef } from "react";
 import { noop } from "src/utils/noop.ts";
 import { Tab } from "src/examples/basic/components/Tabs/Tab.tsx";
-import { TabsApi, TabsProps, useTabs } from "src/lib/tabs/useTabs.tsx";
+import { TabsApi, TabsProps, useTabs } from "src/lib/tabs-ui/useTabs.tsx";
 import { css } from "@emotion/react";
-import { TabProvider, TabsApiProvider } from "src/lib/tabs/tabs.components.tsx";
+import {
+  TabProvider,
+  TabsApiProvider,
+} from "src/lib/tabs-ui/tabs-ui.components.tsx";
 
 export function Tabs(props: TabsProps) {
   const { onActiveTabIdChange = noop, apiRef: apiRefProp } = props;

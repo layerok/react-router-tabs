@@ -1,11 +1,10 @@
 import { createContext, MutableRefObject, PropsWithChildren } from "react";
-import { TabModel, ValidTabMeta } from "./tabs.types.ts";
-import { TabsApi } from "src/lib/tabs/useTabs.tsx";
+import { TabModel } from "./tabs-ui.types.ts";
+import { TabsApi } from "src/lib/tabs-ui/useTabs.tsx";
 
-export type TabContextValue<Meta extends ValidTabMeta = ValidTabMeta> =
-  TabModel<Meta> | null;
+export type TabContextValue = TabModel | null;
 
-export const TabContext = createContext<TabContextValue<any>>(null);
+export const TabContext = createContext<TabContextValue>(null);
 
 export const TabProvider = (
   props: PropsWithChildren<{

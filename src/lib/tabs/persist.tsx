@@ -1,26 +1,12 @@
-import { TabModel, ValidTabMeta } from "src/lib/tabs/tabs.types.ts";
 import {
   StorageDriver,
   StorageKey,
 } from "src/lib/storage/create-storage-driver.ts";
 import { useCallback } from "react";
-import { Outlet } from "react-router-dom";
 
-const serializeTabModel = (model: TabModel<any>): Partial<TabModel<any>> => {
-  return {
-    title: model.title,
-    isClosable: model.isClosable,
-    id: model.id,
-    meta: model.meta,
-  };
-};
+import { RouterTabModel } from "src/lib/tabs/useRouterTabs.tsx";
 
-const deserializeTabModel = (tab: TabModel<any>) => ({
-  ...tab,
-  content: <Outlet />,
-});
-
-export const usePersistTabs = <Meta extends ValidTabMeta = ValidTabMeta>({
+export const usePersistTabs = ({
   storageKey,
   storage,
 }: {
@@ -29,24 +15,21 @@ export const usePersistTabs = <Meta extends ValidTabMeta = ValidTabMeta>({
 }) => {
   return {
     getTabsFromStorage: useCallback(
-      () =>
-        (storage.get<TabModel<Meta>[]>(storageKey) || []).map(
-          deserializeTabModel,
-        ),
+      () => storage.get<RouterTabModel[]>(storageKey) || [],
       [storageKey, storage],
     ),
     persistTabs: useCallback(
-      (tabs: TabModel<Meta>[]) => {
+      (tabs: RouterTabModel[]) => {
         const onUnload = () => {
           // save on window close
           // it doesn't make sense for memory storage
-          storage.set(storageKey, tabs.map(serializeTabModel));
+          storage.set(storageKey, tabs);
         };
         window.addEventListener("unload", onUnload);
         return () => {
           window.removeEventListener("unload", onUnload);
           // save on unmount
-          storage.set(storageKey, tabs.map(serializeTabModel));
+          storage.set(storageKey, tabs);
         };
       },
       [storageKey, storage],

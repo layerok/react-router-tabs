@@ -1,11 +1,11 @@
-import { TabModel } from "src/lib/tabs";
+import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { noop } from "src/utils/noop.ts";
 import { MouseEventHandler } from "react";
 import { css } from "@emotion/react";
 import {
   useTabContext,
   useTabsApiRefContext,
-} from "src/lib/tabs/tabs.hooks.ts";
+} from "src/lib/tabs-ui/tabs-ui.hooks.ts";
 
 export function Tab(props: {
   onClose?: (tab: TabModel) => void;

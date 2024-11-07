@@ -1,22 +1,14 @@
-import { DataRouteMatch, matchRoutes, Outlet } from "react-router-dom";
+import { DataRouteMatch, matchRoutes } from "react-router-dom";
 import { useCallback, useEffect } from "react";
-import { RouterState, AgnosticDataRouteMatch } from "@remix-run/router";
+import { RouterState } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
-import { TabModel, ValidTabMeta } from "src/lib/tabs/tabs.types.ts";
 import { pathToLocation } from "src/lib/tabs/tabs.utils.ts";
 import { Router } from "@remix-run/router";
 
-export type TabbedNavigationMeta = {
-  path: string;
-  routeId: string;
-};
-
-type ValidParams = Record<string, unknown>;
-
-export type TabConfig<Params extends ValidParams = ValidParams> = {
+export type TabConfig = {
   routeId: string;
   insertMethod: InsertMethod;
-  title: ({ params }: { params: Params }) => string;
+  title: (match: DataRouteMatch) => string;
 };
 
 export enum InsertMethod {
@@ -24,31 +16,33 @@ export enum InsertMethod {
   Prepend = "prepend",
 }
 
-type TabsChangeCallback<Meta extends ValidTabMeta = ValidTabMeta> = (
+export type RouterTabModel = {
+  id: string;
+  route: {
+    id: string;
+    path?: string;
+  };
+  path: string;
+};
+
+type TabsChangeCallback = (
   tabs:
-    | TabModel<TabbedNavigationMeta & Meta>[]
+    | RouterTabModel[]
     | {
-        (
-          prevTabs: TabModel<TabbedNavigationMeta & Meta>[],
-        ): TabModel<TabbedNavigationMeta & Meta>[];
+        (prevTabs: RouterTabModel[]): RouterTabModel[];
       },
 ) => void;
 
-export const useRouterTabs = <
-  Meta extends ValidTabMeta = ValidTabMeta,
-  Params extends ValidParams = ValidParams,
->(options: {
+export const useRouterTabs = (options: {
   router: Router;
-  config: TabConfig<Params>[];
-  onTabsChange?: TabsChangeCallback<Meta>;
-  tabs: TabModel<TabbedNavigationMeta & Meta>[];
+  config: TabConfig[];
+  onTabsChange?: TabsChangeCallback;
+  tabs: RouterTabModel[];
   startPinnedTabs: string[];
   endPinnedTabs: string[];
-  resolveTabMeta: (match: AgnosticDataRouteMatch) => Meta;
   fallbackPath: string;
 }) => {
   const {
-    resolveTabMeta,
     fallbackPath,
     onTabsChange,
     tabs = [],
@@ -58,7 +52,21 @@ export const useRouterTabs = <
     router,
   } = options;
 
-  // todo: validate tabs
+  const matchTab = (matches: DataRouteMatch[], config: TabConfig[]) => {
+    for (let i = matches.length - 1; i > -1; i--) {
+      const match = matches[i];
+      const definition = config.find(
+        (definition) => definition.routeId === match.route.id,
+      );
+      if (definition) {
+        return {
+          definition,
+          match,
+        };
+      }
+    }
+    return undefined;
+  };
 
   const updateTabs = useCallback(
     (state: RouterState) => {
@@ -68,71 +76,56 @@ export const useRouterTabs = <
         return;
       }
 
-      let def: TabConfig<any> | undefined = undefined;
-      let match: DataRouteMatch | undefined = undefined;
+      const result = matchTab(matches, config);
 
-      // start from last match, the most specific one
-      for (let i = matches.length - 1; i > -1; i--) {
-        const currentMatch = matches[i];
-        const definition = config.find(
-          (tabDef) => tabDef.routeId === currentMatch.route.id,
-        );
-        if (definition) {
-          def = definition;
-          match = currentMatch;
-          break;
-        }
+      if (!result) {
+        return;
       }
 
-      if (def && match) {
-        onTabsChange?.((prevTabs) => {
-          const tab = prevTabs.find((tab) => tab.id === match.pathname);
+      const handleTabsUpdate = (prevTabs: RouterTabModel[]) => {
+        const { definition, match } = result;
 
-          const { pathname } = last(matches);
-          const { search } = location;
-          const path = pathname + (search ? `${search}` : "");
+        const tab = prevTabs.find((tab) => tab.id === match.pathname);
 
-          if (tab) {
-            // update the tab path
-            const index = prevTabs.indexOf(tab);
+        const { pathname } = last(matches);
+        const { search } = location;
+        const path = pathname + (search ? `${search}` : "");
 
-            return replaceAt(prevTabs, index, {
-              ...tab,
-              meta: {
-                ...tab.meta,
-                path,
-                ...resolveTabMeta(match),
-              },
-            });
+        if (tab) {
+          // update the tab path
+          const index = prevTabs.indexOf(tab);
+
+          return replaceAt(prevTabs, index, {
+            ...tab,
+            path,
+          });
+        } else {
+          const prepend = definition.insertMethod === InsertMethod.Prepend;
+
+          const newTab: RouterTabModel = {
+            id: match.pathname,
+            route: {
+              id: match.route.id,
+              path: match.route.path,
+            },
+            path,
+          };
+
+          // prepend a new tab
+          if (prepend) {
+            return insertAt(prevTabs, startPinnedTabs.length, newTab);
           } else {
-            const prepend = def.insertMethod === InsertMethod.Prepend;
-
-            const newTab: TabModel<TabbedNavigationMeta & Meta> = {
-              id: match.pathname,
-              title: def.title(match),
-              content: <Outlet />,
-              meta: {
-                path,
-                routeId: match.route.id,
-                ...resolveTabMeta(match),
-              },
-            };
-
-            // prepend a new tab
-            if (prepend) {
-              return insertAt(prevTabs, startPinnedTabs.length, newTab);
-            } else {
-              return insertAt(
-                prevTabs,
-                prevTabs.length - endPinnedTabs.length,
-                newTab,
-              );
-            }
+            return insertAt(
+              prevTabs,
+              prevTabs.length - endPinnedTabs.length,
+              newTab,
+            );
           }
-        });
-      }
+        }
+      };
+      onTabsChange?.(handleTabsUpdate);
     },
-    [resolveTabMeta, startPinnedTabs, config, onTabsChange, endPinnedTabs],
+    [startPinnedTabs, config, onTabsChange, endPinnedTabs],
   );
 
   useEffect(() => {
@@ -144,7 +137,7 @@ export const useRouterTabs = <
   const setActiveTabId = (id: string | undefined) => {
     const tab = tabs.find((tab) => tab.id === id);
     if (tab) {
-      router.navigate(pathToLocation(tab.meta.path));
+      router.navigate(pathToLocation(tab.path));
     } else {
       router.navigate(fallbackPath);
     }
@@ -152,15 +145,22 @@ export const useRouterTabs = <
 
   const matches = matchRoutes(router.routes, router.state.location) || [];
 
-  const activeTabId = matches
-    .slice()
-    .reverse()
-    .find((match) => {
-      return config.find((def) => def.routeId === match.route.id);
-    })?.pathname;
+  const activeTabId = matchTab(matches, config)?.match?.pathname;
+
+  const getTabTitleByTabPath = (path: string) => {
+    const matches = matchRoutes(router.routes, path) || [];
+
+    const result = matchTab(matches, config);
+    if (result) {
+      return result.definition.title(result.match);
+    }
+    return undefined;
+  };
 
   return {
     setActiveTabId,
     activeTabId,
+    getTabTitleByTabPath,
+    matchTab,
   };
 };

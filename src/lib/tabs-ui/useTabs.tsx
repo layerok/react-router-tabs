@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TabModel } from "src/lib/tabs/tabs.types.ts";
+import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { closestItem } from "src/lib/tabs/tabs.utils.ts";
 import { removeItem } from "src/utils/array-utils.ts";
 
@@ -32,14 +32,14 @@ export type TabsProps = {
   initialActiveTabId?: string;
   startPinnedTabs?: string[];
   endPinnedTabs?: string[];
-  tabs?: TabModel<any>[];
-  initialTabs?: TabModel<any>[];
+  tabs?: TabModel[];
+  initialTabs?: TabModel[];
   initialStartPinnedTabs?: string[];
   initialEndPinnedTabs?: string[];
   onActiveTabIdChange?: (id: string | undefined) => void;
   onStartPinnedTabsChange?: (ids: string[]) => void;
   onEndPinnedTabsChange?: (ids: string[]) => void;
-  onTabsChange?: (tabs: TabModel<any>[]) => void;
+  onTabsChange?: (tabs: TabModel[]) => void;
   apiRef?: React.Ref<TabsApi | undefined>;
 };
 

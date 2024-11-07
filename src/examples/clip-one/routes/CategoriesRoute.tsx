@@ -1,17 +1,17 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 
 import { routeIds } from "../routes.tsx";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
 import {
   InsertMethod,
-  TabbedNavigationMeta,
+  RouterTabModel,
   TabConfig,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 import { data as categories } from "../data/categories.json";
 
-import { TabModel } from "src/lib/tabs";
+import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabs } from "src/lib/tabs";
@@ -24,51 +24,31 @@ import {
 import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 
-type DetailTabParams = { id: string };
-
 const persistStoreKey = {
   name: "clip-one__category-tabs",
-  version: "1.0",
+  version: "2.0",
 };
 
 export function CategoriesRoute() {
   const { router } = useDataRouterContext();
-  const [listTabDef] = useState(() => ({
-    title: () => "All Categories",
-    routeId: routeIds.category.list,
-    insertMethod: InsertMethod.Prepend,
-  }));
 
-  const [detailTabDef] = useState<TabConfig<DetailTabParams>>(() => ({
-    title: ({ params }) => {
-      const category = categories.find(
-        (category) => String(category.id) == params.id,
-      );
-      return category!.title;
-    },
-    routeId: routeIds.category.detail,
-    insertMethod: InsertMethod.Prepend,
-  }));
+  const { getTabsFromStorage, persistTabs } = usePersistTabs({
+    storageKey: persistStoreKey,
+    storage: localStorageDriver,
+  });
 
-  const { getTabsFromStorage, persistTabs } =
-    usePersistTabs<TabbedNavigationMeta>({
-      storageKey: persistStoreKey,
-      storage: localStorageDriver,
-    });
-
-  const defaultTabs: TabModel<TabbedNavigationMeta>[] = [
+  const defaultTabs: RouterTabModel[] = [
     {
       id: categoriesListRoute,
-      title: "List",
-      content: <Outlet />,
-      meta: {
-        routeId: routeIds.category.list,
+      route: {
+        id: routeIds.category.list,
         path: categoriesListRoute,
       },
+      path: categoriesListRoute,
     },
   ];
 
-  const [tabs, setTabs] = useState<TabModel<TabbedNavigationMeta>[]>(() =>
+  const [tabs, setTabs] = useState<RouterTabModel[]>(() =>
     validateTabs(getTabsFromStorage() || defaultTabs, router.routes.slice()),
   );
 
@@ -82,31 +62,71 @@ export function CategoriesRoute() {
 
   const [endPinnedTabs] = useState<string[]>([]);
 
-  const { activeTabId, setActiveTabId } = useRouterTabs({
+  const config = useMemo<TabConfig[]>(
+    () => [
+      {
+        title: () => "All Categories",
+        routeId: routeIds.category.list,
+        insertMethod: InsertMethod.Prepend,
+      },
+      {
+        title: ({ params }) => {
+          const category = categories.find(
+            (category) => String(category.id) == params.id,
+          );
+          return category!.title;
+        },
+        routeId: routeIds.category.detail,
+        insertMethod: InsertMethod.Prepend,
+      },
+    ],
+    [],
+  );
+
+  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
     router,
-    config: useMemo(
-      () => [listTabDef, detailTabDef],
-      [listTabDef, detailTabDef],
-    ),
+    config: config,
     fallbackPath: homeRoute,
     endPinnedTabs,
     startPinnedTabs,
     tabs,
     onTabsChange: setTabs,
-    resolveTabMeta: useCallback(() => ({}), []),
   });
+
+  const uiTabs: TabModel[] = tabs.map((tab) => {
+    return {
+      id: tab.id,
+      content: <Outlet />,
+      title: getTabTitleByTabPath(tab.path)!,
+      isClosable: false,
+    };
+  });
+
+  const setUiTabs = (uiTabs: TabModel[]) => {
+    setTabs(
+      uiTabs.map((uiTab) => {
+        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
+
+        return {
+          id: uiTab.id,
+          route: routerTab!.route,
+          path: routerTab!.path,
+        };
+      }),
+    );
+  };
 
   return (
     <div css={layoutStyles}>
       <Tabs
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}
-        tabs={tabs}
+        tabs={uiTabs}
         startPinnedTabs={startPinnedTabs}
         initialActiveTabId={activeTabId}
-        initialTabs={tabs}
+        initialTabs={uiTabs}
         initialStartPinnedTabs={startPinnedTabs}
-        onTabsChange={setTabs}
+        onTabsChange={setUiTabs}
         hasControlledActiveTabId
         onStartPinnedTabsChange={setStartPinnedTabsChange}
       />
