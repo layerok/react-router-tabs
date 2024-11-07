@@ -1,7 +1,7 @@
 import { Params } from "react-router-dom";
 
 export type TabHandle = {
-  key: string;
+  key: any;
   title: (props: { params: Params }) => string;
 };
 

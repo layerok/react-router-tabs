@@ -1,9 +1,9 @@
-import { DataRouteMatch, RouteObject, UIMatch } from "react-router-dom";
+import { RouteObject, UIMatch } from "react-router-dom";
 import { Handle, TabHandle } from "./types";
 import { flattenRoutes } from "src/lib/tabs";
 import { InsertMethod, TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
 
-export const convertRouteTreeToConfig = (tree: RouteObject[], key: string) => {
+export const convertRouteTreeToConfig = (tree: RouteObject[], key: any) => {
   const flatRoutes = flattenRoutes(tree);
 
   const matchedRoutes = flatRoutes.filter((route) => {
@@ -22,14 +22,6 @@ export const convertRouteTreeToConfig = (tree: RouteObject[], key: string) => {
   });
   return config;
 };
-
-export const getTabHandle =
-  (key: string) =>
-  (match: DataRouteMatch): TabHandle | undefined => {
-    return (match.route?.handle as Handle | undefined)?.tabs.find(
-      (tabHandle: TabHandle) => tabHandle.key === key,
-    );
-  };
 
 export const getTabHandleUI =
   (key: string) =>
