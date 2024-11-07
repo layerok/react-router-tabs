@@ -12,7 +12,7 @@ import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
-import { convertRouteTreeToConfig } from "src/examples/basic/utils.ts";
+import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.ts";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { Outlet } from "react-router-dom";
 import { TabsApi } from "src/lib/tabs-ui/useTabs.tsx";
@@ -38,7 +38,11 @@ export function AdminLayout() {
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([]);
 
   const config = useMemo(
-    () => convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Main),
+    () =>
+      convertRouteTreeToRouterTabsConfig(
+        router.routes.slice(),
+        TabStoreKey.Main,
+      ),
     [router],
   );
 

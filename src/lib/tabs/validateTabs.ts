@@ -1,5 +1,5 @@
 import { matchRoutes, RouteObject } from "react-router-dom";
-import { flattenRoutes } from "src/lib/tabs";
+import { flattenRoutes } from "src/lib/tabs/flattenRoutes";
 import { RouterTabModel } from "src/lib/tabs/useRouterTabs.tsx";
 
 export const validateTabs = (tabs: RouterTabModel[], routes: RouteObject[]) => {

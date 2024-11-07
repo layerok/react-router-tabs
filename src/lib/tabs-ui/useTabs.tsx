@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
-import { closestItem } from "src/lib/tabs/tabs.utils.ts";
 import { removeItem } from "src/utils/array-utils.ts";
 
 export type TabsApi = {
@@ -291,3 +290,14 @@ export const useTabs = (
   useActive(apiRef, props);
   useChildTabsApi(apiRef);
 };
+
+function closestItem<T>(arr: T[], item: T): T | undefined {
+  const index = arr.indexOf(item);
+  if (index === -1) {
+    return arr[0];
+  } else if (index === arr.length - 1) {
+    return arr[arr.length - 2];
+  } else {
+    return arr[index + 1];
+  }
+}

@@ -2,7 +2,6 @@ import { DataRouteMatch, matchRoutes } from "react-router-dom";
 import { useCallback, useEffect } from "react";
 import { RouterState } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
-import { pathToLocation } from "src/lib/tabs/tabs.utils.ts";
 import { Router } from "@remix-run/router";
 
 export type TabConfig = {
@@ -140,7 +139,11 @@ export const useRouterTabs = (options: {
   const setActiveTabId = (id: string | undefined) => {
     const tab = tabs.find((tab) => tab.id === id);
     if (tab) {
-      router.navigate(pathToLocation(tab.path));
+      const [pathname, search] = tab.path.split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
     } else {
       router.navigate(fallbackPath);
     }

@@ -1,5 +1,5 @@
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
-import { replacePathParams } from "src/lib/tabs";
+import { replacePathParams } from "src/examples/basic/utils/replacePathParams.ts";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 import { Link, Outlet, useParams } from "react-router-dom";
@@ -17,7 +17,7 @@ import {
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
 import { RouterTabModel, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
-import { convertRouteTreeToConfig } from "src/examples/basic/utils.ts";
+import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.ts";
 
 const persistStoreKey = {
   name: "basic__product-tabs",
@@ -51,7 +51,11 @@ export function ProductsRoute() {
   ]);
 
   const config = useMemo(
-    () => convertRouteTreeToConfig(router.routes.slice(), TabStoreKey.Products),
+    () =>
+      convertRouteTreeToRouterTabsConfig(
+        router.routes.slice(),
+        TabStoreKey.Products,
+      ),
     [router],
   );
 
