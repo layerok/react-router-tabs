@@ -10,7 +10,7 @@ export const convertRouteTreeToConfig = (tree: RouteObject[], key: any) => {
     return (route.handle as Handle)?.tabs.find((tab) => tab.key === key);
   });
 
-  const config: TabConfig<any>[] = matchedRoutes.map((route) => {
+  const config: TabConfig[] = matchedRoutes.map((route) => {
     const handle = route.handle as Handle;
     const tabMeta = handle.tabs.find((tab) => (tab.key = key));
 
