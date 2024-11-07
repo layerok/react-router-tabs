@@ -33,6 +33,25 @@ type TabsChangeCallback = (
       },
 ) => void;
 
+export const matchRouterTab = (
+  matches: DataRouteMatch[],
+  config: TabConfig[],
+) => {
+  for (let i = matches.length - 1; i > -1; i--) {
+    const match = matches[i];
+    const definition = config.find(
+      (definition) => definition.routeId === match.route.id,
+    );
+    if (definition) {
+      return {
+        definition,
+        match,
+      };
+    }
+  }
+  return undefined;
+};
+
 export const useRouterTabs = (options: {
   router: Router;
   config: TabConfig[];
@@ -52,22 +71,6 @@ export const useRouterTabs = (options: {
     router,
   } = options;
 
-  const matchTab = (matches: DataRouteMatch[], config: TabConfig[]) => {
-    for (let i = matches.length - 1; i > -1; i--) {
-      const match = matches[i];
-      const definition = config.find(
-        (definition) => definition.routeId === match.route.id,
-      );
-      if (definition) {
-        return {
-          definition,
-          match,
-        };
-      }
-    }
-    return undefined;
-  };
-
   const updateTabs = useCallback(
     (state: RouterState) => {
       const { matches, location, navigation } = state;
@@ -76,7 +79,7 @@ export const useRouterTabs = (options: {
         return;
       }
 
-      const result = matchTab(matches, config);
+      const result = matchRouterTab(matches, config);
 
       if (!result) {
         return;
@@ -145,12 +148,12 @@ export const useRouterTabs = (options: {
 
   const matches = matchRoutes(router.routes, router.state.location) || [];
 
-  const activeTabId = matchTab(matches, config)?.match?.pathname;
+  const activeTabId = matchRouterTab(matches, config)?.match?.pathname;
 
   const getTabTitleByTabPath = (path: string) => {
     const matches = matchRoutes(router.routes, path) || [];
 
-    const result = matchTab(matches, config);
+    const result = matchRouterTab(matches, config);
     if (result) {
       return result.definition.title(result.match);
     }
@@ -161,6 +164,5 @@ export const useRouterTabs = (options: {
     setActiveTabId,
     activeTabId,
     getTabTitleByTabPath,
-    matchTab,
   };
 };
