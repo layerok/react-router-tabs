@@ -127,14 +127,6 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     initialStartPinnedTabs = [],
     initialEndPinnedTabs = [],
   } = props;
-  const handlersMapRef = useRef<ControlledStateCallbacks>({
-    tabs: onTabsChange,
-    activeTabId: onActiveTabIdChange,
-    startPinnedTabs: onStartPinnedTabsChange,
-    endPinnedTabs: onEndPinnedTabsChange,
-    childTabsApi: () => {},
-    parentTabsApi: () => {},
-  });
 
   handlersMapRef.current.tabs = onTabsChange;
   handlersMapRef.current.activeTabId = onActiveTabIdChange;
@@ -168,9 +160,16 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     if (runHandlers) {
       subStateKeys.forEach((subStateKey) => {
         const subState = newState[subStateKey];
-        const subStateHandler = handlersMapRef.current[subStateKey];
+        const subStateChangeHandler = {
+          tabs: onTabsChange,
+          activeTabId: onActiveTabIdChange,
+          startPinnedTabs: onStartPinnedTabsChange,
+          endPinnedTabs: onEndPinnedTabsChange,
+          childTabsApi: () => {},
+          parentTabsApi: () => {},
+        }[subStateKey];
         // @ts-ignore
-        subStateHandler?.(subState);
+        subStateChangeHandler?.(subState);
       });
     }
 
