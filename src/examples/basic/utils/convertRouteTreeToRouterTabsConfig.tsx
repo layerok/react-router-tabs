@@ -3,7 +3,8 @@ import { flattenRoutes } from "src/lib/tabs/flattenRoutes.ts";
 import { Handle } from "src/examples/basic/types.ts";
 import { TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
-import { ReactNode } from "react";
+import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
+import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
 
 export const convertRouteTreeToRouterTabsConfig = (
   tree: RouteObject[],
@@ -15,23 +16,18 @@ export const convertRouteTreeToRouterTabsConfig = (
     return (route.handle as Handle)?.tabs.find((tab) => tab.key === key);
   });
 
-  const config: TabConfig<{
-    id: string;
-    content: ReactNode;
-    title: string;
-    isClosable: boolean;
-  }>[] = matchedRoutes.map((route) => {
+  const config: TabConfig<TabModel>[] = matchedRoutes.map((route) => {
     const handle = route.handle as Handle;
     const tabMeta = handle.tabs.find((tab) => (tab.key = key));
 
     return {
-      properties: (match, path) => ({
+      mapToUiState: (match, path) => ({
         id: path,
         isClosable: true,
         content: <Outlet />,
         title: tabMeta!.title(match),
       }),
-      shouldOpen: (match) => match.route.id === route.id!,
+      shouldOpen: whenRoutePathIs(route.id!),
       insertAt: tabMeta!.insertAt || theBeginning,
     };
   });

@@ -2,12 +2,12 @@ import { Tabs } from "../components/Tabs/Tabs.tsx";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { data as products } from "../data/products.json";
 
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
-import { validateTabs } from "src/lib/tabs";
+import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import {
   homeRoute,
@@ -17,7 +17,7 @@ import {
   productsRoute,
 } from "../constants/routes.constants.ts";
 import {
-  RouterTabModel,
+  RouterTabPath,
   TabConfig,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
@@ -26,6 +26,7 @@ import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 import { Button } from "src/examples/clip-one/components/Button/Button.tsx";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 import { theEnd } from "src/lib/tabs/theEnd.ts";
+import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
 
 type DetailParams = { id: string };
 
@@ -41,82 +42,87 @@ export function ProductsRoute() {
     storage: localStorageDriver,
   });
 
-  const [listTab] = useState(() => productsRoute);
+  const [defaultTabs] = useState(() => [productsRoute]);
 
-  const [config] = useState<
-    TabConfig<{
-      id: string;
-      title: string;
-      content: ReactNode;
-      isClosable: boolean;
-    }>[]
-  >(() => [
-    {
-      properties: (_, path) => ({
-        id: path,
-        title: "All products",
-        isClosable: false,
-        content: <Outlet />,
-      }),
-      shouldOpen: (match) => match.route.path === productsRoute,
-      insertAt: theBeginning,
-    },
-    {
-      properties: (match, path) => ({
-        title: (() => {
-          const product = products.find(
-            (product) => String(product.id) === match.params?.id,
-          );
-          return product!.title;
-        })(),
-        id: path,
-        isClosable: true,
-        content: <Outlet />,
-      }),
-      shouldOpen: (match) => match.route.path === productDetailRoute,
-      insertAt: () => 1,
-    },
-    {
-      properties: (_, path) => ({
-        title: "New product",
-        id: path,
-        isClosable: true,
-        content: <Outlet />,
-      }),
-      shouldOpen: (match) => match.route.path === productsCreateRoute,
-      insertAt: theEnd,
-    },
-  ]);
-
-  const [tabs, setTabs] = useState<RouterTabModel[]>(() =>
-    validateTabs(getTabsFromStorage() || [listTab], router),
+  const [paths, setPaths] = useState<RouterTabPath[]>(() =>
+    validateTabPaths(getTabsFromStorage() || defaultTabs, router),
   );
 
-  const { activeTabId, setActiveTabId, uiTabs } = useRouterTabs({
+  const { tabs, activeTab } = useRouterTabs({
     router,
-    config,
-    fallbackPath: homeRoute,
-    tabs,
-    onTabsChange: setTabs,
+    config: useMemo(
+      () => [
+        {
+          mapToUiState: (_, path) => ({
+            id: path,
+            title: "All products",
+            isClosable: false,
+            content: <Outlet />,
+          }),
+          shouldOpen: whenRoutePathIs(productsRoute),
+          insertAt: theBeginning,
+        },
+        {
+          mapToUiState: (match, path) => ({
+            id: path,
+            title: (() => {
+              const product = products.find(
+                (product) => String(product.id) === match.params?.id,
+              );
+              return product!.title;
+            })(),
+            isClosable: true,
+            content: <Outlet />,
+          }),
+          shouldOpen: whenRoutePathIs(productDetailRoute),
+          insertAt: () => 1,
+        },
+        {
+          mapToUiState: (_, path) => ({
+            id: path,
+            title: "New product",
+            isClosable: true,
+            content: <Outlet />,
+          }),
+          shouldOpen: whenRoutePathIs(productsCreateRoute),
+          insertAt: theEnd,
+        },
+      ],
+      [],
+    ),
+    paths,
+    onPathsChange: setPaths,
   });
 
   useEffect(() => {
-    return persistTabs(tabs);
-  }, [tabs, persistTabs]);
+    return persistTabs(paths);
+  }, [paths, persistTabs]);
 
-  const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(uiTabs.map((uiTab) => uiTab.id));
+  const setTabs = (tabs: TabModel[]) => {
+    setPaths(tabs.map((tab) => tab.id));
   };
+
+  const setActiveTabId = (id: string | undefined) => {
+    setTimeout(() => {
+      const [pathname, search] = (id || homeRoute).split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
+    });
+  };
+
+  const activeTabId = activeTab?.id;
 
   return (
     <div css={layoutStyles}>
       <Tabs
-        tabs={uiTabs.map((tab) => tab.properties)}
-        onTabsChange={setUiTabs}
-        initialActiveTabId={activeTabId}
-        initialTabs={uiTabs.map((tab) => tab.properties)}
+        tabs={tabs}
+        onTabsChange={setTabs}
+        initialTabs={tabs}
         hasControlledActiveTabId
         activeTabId={activeTabId}
+        initialActiveTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}
       />
     </div>
@@ -174,74 +180,67 @@ export function ProductDetailRoute() {
   const params = useParams() as DetailParams;
   const { router } = useDataRouterContext();
 
-  const generalTab = useMemo<RouterTabModel>(
-    () => productDetailRoute.replace(":id", params.id),
-    [params.id],
-  );
-  const settingsTab = useMemo<RouterTabModel>(
-    () => productDetailSettingTabsRoute.replace(":id", params.id),
-    [params.id],
-  );
+  const [paths, setPaths] = useState([
+    productDetailRoute.replace(":id", params.id),
+    productDetailSettingTabsRoute.replace(":id", params.id),
+  ]);
 
-  const [tabs, setTabs] = useState([generalTab, settingsTab]);
-
-  useEffect(() => {
-    setTabs([generalTab, settingsTab]);
-  }, [generalTab, settingsTab]);
-
-  const config = useMemo<
-    TabConfig<{
-      id: string;
-      content: ReactNode;
-      title: string;
-      isClosable: boolean;
-    }>[]
-  >(
+  const config = useMemo<TabConfig<TabModel>[]>(
     () => [
       {
-        properties: (_, tab) => ({
+        mapToUiState: (_, tab) => ({
           title: "General",
           id: tab,
           content: <Outlet />,
           isClosable: false,
         }),
-        shouldOpen: (match) => match.route.path === productDetailRoute,
+        shouldOpen: whenRoutePathIs(productDetailRoute),
         insertAt: theBeginning,
       },
       {
-        properties: (_, tab) => ({
+        mapToUiState: (_, tab) => ({
           title: "Settings",
           id: tab,
           content: <Outlet />,
           isClosable: false,
         }),
-        shouldOpen: (match) =>
-          match.route.path === productDetailSettingTabsRoute,
+        shouldOpen: whenRoutePathIs(productDetailSettingTabsRoute),
         insertAt: theBeginning,
       },
     ],
     [],
   );
 
-  const { activeTabId, setActiveTabId, uiTabs } = useRouterTabs({
+  const { tabs, activeTab } = useRouterTabs({
     router,
     config,
-    fallbackPath: homeRoute,
-    tabs,
-    onTabsChange: setTabs,
+    paths,
+    onPathsChange: setPaths,
   });
 
-  const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(uiTabs.map((uiTab) => uiTab.id));
+  const setTabs = (tabs: TabModel[]) => {
+    setPaths(tabs.map((tab) => tab.id));
   };
+
+  const setActiveTabId = (id: string | undefined) => {
+    setTimeout(() => {
+      const [pathname, search] = (id || homeRoute).split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
+    });
+  };
+
+  const activeTabId = activeTab?.id;
 
   return (
     <div css={detailFormLayout}>
       <Tabs
-        tabs={uiTabs.map((tab) => tab.properties)}
-        onTabsChange={setUiTabs}
+        tabs={tabs}
+        initialTabs={tabs}
+        onTabsChange={setTabs}
         initialActiveTabId={activeTabId}
-        initialTabs={uiTabs.map((tab) => tab.properties)}
         hasControlledActiveTabId
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}

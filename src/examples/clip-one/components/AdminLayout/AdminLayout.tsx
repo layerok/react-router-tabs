@@ -1,6 +1,6 @@
 import { Sidebar } from "../Sidebar/Sidebar.tsx";
 import { Tabs } from "../Tabs/Tabs.tsx";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import {
@@ -11,19 +11,23 @@ import {
   suppliersRoute,
 } from "../../constants/routes.constants.ts";
 import {
-  matchRouterTab,
+  RouterTabPath,
   TabConfig,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
-import { matchRoutes, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
+import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
+import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { localStorageDriver } from "src/lib/storage/local-storage.ts";
+import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
 
-// const persistStoreKey = {
-//   name: "clip-one__main-tabs",
-//   version: "4.0",
-// };
+const persistStoreKey = {
+  name: "clip-one__main-tabs",
+  version: "4.0",
+};
 
 type Properties = {
   id: string;
@@ -34,70 +38,72 @@ type Properties = {
 
 export function AdminLayout() {
   const { router } = useDataRouterContext();
+  const { getTabsFromStorage, persistTabs } = usePersistTabs({
+    storageKey: persistStoreKey,
+    storage: localStorageDriver,
+  });
 
-  const [paths, setPaths] = useState<string[]>([]);
+  const [paths, setPaths] = useState<RouterTabPath[]>(
+    validateTabPaths(getTabsFromStorage() || [], router),
+  );
 
   const [config] = useState<TabConfig<Properties>[]>(() => [
     {
-      properties: (match) => ({
-        id: match.pathname,
+      mapToUiState: (_, path) => ({
+        id: path,
         title: "Dashboard",
         content: <Outlet />,
         isClosable: true,
       }),
-      shouldOpen: (match) => match.route.path === dashboardRoute,
+      shouldOpen: whenRoutePathIs(dashboardRoute),
       insertAt: theBeginning,
     },
     {
-      properties: (match) => ({
-        id: match.pathname,
+      mapToUiState: (_, path) => ({
+        id: path,
         title: "Categories",
         content: <Outlet />,
         isClosable: true,
       }),
-      shouldOpen: (match) => match.route.path === categoriesRoute,
+      shouldOpen: whenRoutePathIs(categoriesRoute),
       insertAt: theBeginning,
     },
     {
-      properties: (match) => ({
-        id: match.pathname,
+      mapToUiState: (_, path) => ({
+        id: path,
         title: "Products",
         content: <Outlet />,
         isClosable: true,
       }),
-      shouldOpen: (match) => match.route.path === productsRoute,
+      shouldOpen: whenRoutePathIs(productsRoute),
       insertAt: theBeginning,
     },
     {
-      properties: (match) => ({
-        id: match.pathname,
+      mapToUiState: (_, path) => ({
+        id: path,
         title: "Suppliers",
         content: <Outlet />,
         isClosable: true,
       }),
-      shouldOpen: (match) => match.route.path === suppliersRoute,
+      shouldOpen: whenRoutePathIs(suppliersRoute),
       insertAt: theBeginning,
     },
   ]);
 
-  const { uiTabs } = useRouterTabs<Properties>({
+  const { tabs, activeTab } = useRouterTabs<Properties>({
     router,
     config,
-    tabs: paths,
-    onTabsChange: setPaths,
-    fallbackPath: homeRoute,
+    paths,
+    onPathsChange: setPaths,
   });
 
+  useEffect(() => {
+    return persistTabs(paths);
+  }, [paths, persistTabs]);
+
   const setActiveTabId = (id: string | undefined) => {
-    const tab = paths.find((path) => {
-      const pathname = id;
-      const url = new URL(path, window.location.href);
-      const matches = matchRoutes(router.routes, url) || [];
-      const result = matchRouterTab(matches, config);
-      return result?.match.pathname === pathname;
-    });
-    const [pathname, search] = (tab || homeRoute).split("?");
     setTimeout(() => {
+      const [pathname, search] = (id || homeRoute).split("?");
       router.navigate({
         pathname,
         search,
@@ -105,16 +111,11 @@ export function AdminLayout() {
     });
   };
 
-  const matches = matchRoutes(router.routes, router.state.location) || [];
-  const result = matchRouterTab(matches, config);
+  const activeTabId = activeTab?.id;
 
-  const activeTabId = result ? result.match.pathname : undefined;
-
-  const setUiTabs = (uiTabs: TabModel[]) => {
-    setPaths(uiTabs.map((uiTab) => uiTab.id));
+  const setTabs = (tabs: TabModel[]) => {
+    setPaths(tabs.map((tab) => tab.id));
   };
-
-  const finalTabs = uiTabs.map((tab) => tab.properties);
 
   return (
     <div css={layoutStyles}>
@@ -124,10 +125,10 @@ export function AdminLayout() {
         <div css={contentStyles}>
           <div css={tabsStyles}>
             <Tabs
-              tabs={finalTabs}
-              onTabsChange={setUiTabs}
+              tabs={tabs}
+              onTabsChange={setTabs}
               initialActiveTabId={activeTabId}
-              initialTabs={finalTabs}
+              initialTabs={tabs}
               hasControlledActiveTabId
               activeTabId={activeTabId}
               onActiveTabIdChange={setActiveTabId}

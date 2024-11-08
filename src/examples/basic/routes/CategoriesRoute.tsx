@@ -1,12 +1,12 @@
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
-import { RouterTabModel, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
-import { validateTabs } from "src/lib/tabs";
+import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import {
   homeRoute,
@@ -29,15 +29,15 @@ export function CategoriesRoute() {
     storage: localStorageDriver,
   });
 
-  const defaultTabs: RouterTabModel[] = [categoriesListRoute];
+  const defaultTabs: RouterTabPath[] = [categoriesListRoute];
 
-  const [tabs, setTabs] = useState<RouterTabModel[]>(() =>
-    validateTabs(getTabsFromStorage() || defaultTabs, router),
+  const [paths, setPaths] = useState<RouterTabPath[]>(() =>
+    validateTabPaths(getTabsFromStorage() || defaultTabs, router),
   );
 
   useEffect(() => {
-    return persistTabs(tabs);
-  }, [tabs, persistTabs]);
+    return persistTabs(paths);
+  }, [paths, persistTabs]);
 
   const config = useMemo(
     () =>
@@ -48,35 +48,37 @@ export function CategoriesRoute() {
     [router],
   );
 
-  const { activeTabId, setActiveTabId, getTabPropertiesByTabPath } =
-    useRouterTabs({
-      router,
-      config: config,
-      fallbackPath: homeRoute,
-      tabs,
-      onTabsChange: setTabs,
-    });
-
-  const uiTabs: TabModel[] = tabs.map((tab) => {
-    return {
-      id: tab,
-      content: <Outlet />,
-      title: getTabPropertiesByTabPath(tab)!.title,
-      isClosable: false,
-    };
+  const { tabs, activeTab } = useRouterTabs({
+    router,
+    config,
+    paths,
+    onPathsChange: setPaths,
   });
 
-  const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(uiTabs.map((uiTab) => uiTab.id));
+  const setTabs = (tabs: TabModel[]) => {
+    setPaths(tabs.map((tab) => tab.id));
   };
+
+  const setActiveTabId = (id: string | undefined) => {
+    setTimeout(() => {
+      const [pathname, search] = (id || homeRoute).split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
+    });
+  };
+
+  const activeTabId = activeTab?.id;
 
   return (
     <div>
       <Tabs
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}
-        tabs={uiTabs}
-        onTabsChange={setUiTabs}
+        tabs={tabs}
+        initialTabs={tabs}
+        onTabsChange={setTabs}
         hasControlledActiveTabId
       />
     </div>

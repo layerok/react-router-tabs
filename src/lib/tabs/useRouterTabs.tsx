@@ -1,20 +1,24 @@
 import { DataRouteMatch, matchRoutes } from "react-router-dom";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { RouterState } from "@remix-run/router";
 import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
 import { Router } from "@remix-run/router";
+import { getUrl } from "src/lib/tabs/getUrl.ts";
+import { normalizePathname } from "src/lib/tabs/normalizePathname.ts";
 
-type ValidProperties = Record<string, any>;
+type ValidUiState = Record<string, any>;
 
-export type TabConfig<Properties extends ValidProperties = ValidProperties> = {
+export type TabConfig<UiState extends ValidUiState = ValidUiState> = {
   shouldOpen: (match: DataRouteMatch) => boolean;
-  insertAt: (tabs: RouterTabModel[]) => number;
-  properties: (match: DataRouteMatch, path: RouterTabModel) => Properties;
+  insertAt: (tabs: RouterTabPath[]) => number;
+  mapToUiState: (match: DataRouteMatch, path: RouterTabPath) => UiState;
 };
 
-export type RouterTabModel = string;
+export type RouterTabPath = string;
 
-type TabsChangeCallback = (tabs: RouterTabModel[]) => void;
+type PathsChangeCallback = (
+  paths: RouterTabPath[] | { (prevPaths: RouterTabPath[]): RouterTabPath[] },
+) => void;
 
 export const matchRouterTab = (
   matches: DataRouteMatch[],
@@ -34,23 +38,14 @@ export const matchRouterTab = (
 };
 
 export const useRouterTabs = <
-  Properties extends ValidProperties = ValidProperties,
+  UiState extends ValidUiState = ValidUiState,
 >(options: {
   router: Router;
-  config: TabConfig<Properties>[];
-  onTabsChange?: TabsChangeCallback;
-  tabs: RouterTabModel[];
-  fallbackPath: string;
+  config: TabConfig<UiState>[];
+  onPathsChange?: PathsChangeCallback;
+  paths: RouterTabPath[];
 }) => {
-  const {
-    fallbackPath,
-    onTabsChange,
-    tabs: tabsProps = [],
-    config,
-    router,
-  } = options;
-  const tabs = useRef<RouterTabModel[]>(tabsProps);
-  tabs.current = tabsProps;
+  const { onPathsChange, paths, config, router } = options;
 
   const updateTabs = useCallback(
     (state: RouterState) => {
@@ -59,43 +54,40 @@ export const useRouterTabs = <
       if (navigation.location) {
         return;
       }
-      console.log("fire subscriber");
-      console.log("fire subscriber state", state.location.pathname);
-      console.log("fire subscriber tabs", tabs.current);
+
       const result = matchRouterTab(matches, config);
 
       if (!result) {
         return;
       }
       const { definition, match } = result;
-      const getNextTabs = () => {
-        const prevTabs = tabs.current;
-
-        const tab = prevTabs.find((tab) => {
-          const matches = matchRoutes(router.routes, tab) || [];
-
+      const getNextPaths = (prevPaths: RouterTabPath[]) => {
+        const tab = prevPaths.find((path) => {
+          const matches = matchRoutes(router.routes, path) || [];
           const result = matchRouterTab(matches, config);
-
-          return result && result.match.pathname === match.pathname;
+          return (
+            result &&
+            normalizePathname(result.match.pathname) ===
+              normalizePathname(match.pathname)
+          );
         });
 
         const { pathname } = last(matches);
         const { search } = location;
-        const path = pathname + (search ? `${search}` : "");
+        const path = normalizePathname(pathname) + search;
 
         if (tab) {
           // update the tab path
-          const index = prevTabs.indexOf(tab);
+          const index = prevPaths.indexOf(tab);
 
-          return replaceAt(prevTabs, index, path);
+          return replaceAt(prevPaths, index, path);
         } else {
-          const newTab: RouterTabModel = path;
-          return insertAt(prevTabs, definition.insertAt(prevTabs), newTab);
+          return insertAt(prevPaths, definition.insertAt(prevPaths), path);
         }
       };
-      onTabsChange?.(getNextTabs());
+      onPathsChange?.(getNextPaths);
     },
-    [config, onTabsChange, router.routes],
+    [config, onPathsChange, router.routes],
   );
 
   useEffect(() => {
@@ -104,25 +96,23 @@ export const useRouterTabs = <
     return router.subscribe(updateTabs);
   }, [router, updateTabs]);
 
-  const getTabPropertiesByTabPath = (path: string) => {
+  const tabs = paths.map((path) => {
     const matches = matchRoutes(router.routes, path) || [];
+    const result = matchRouterTab(matches, config)!;
 
-    const result = matchRouterTab(matches, config);
-    if (result) {
-      return result.definition.properties(result.match, path);
-    }
-    return undefined;
-  };
-
-  const uiTabs = tabs.current.map((tab) => {
-    return {
-      id: tab,
-      properties: getTabPropertiesByTabPath(tab) as Properties,
-    };
+    return result.definition.mapToUiState(result.match, path) as UiState;
   });
 
+  const matches = matchRoutes(router.routes, router.state.location) || [];
+  const result = matchRouterTab(matches, config);
+
+  const activeTab = result?.definition.mapToUiState(
+    result.match,
+    getUrl(router.state.location),
+  ) as UiState | undefined;
+
   return {
-    getTabPropertiesByTabPath,
-    uiTabs,
+    tabs,
+    activeTab,
   };
 };

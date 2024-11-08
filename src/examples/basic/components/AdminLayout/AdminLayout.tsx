@@ -2,7 +2,8 @@ import { Sidebar } from "../../components/Sidebar/Sidebar.tsx";
 import { Tabs } from "../../components/Tabs/Tabs.tsx";
 
 import { TabStoreKey } from "../../constants/tabs.constants.ts";
-import { validateTabs, usePersistTabs } from "src/lib/tabs";
+import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
+import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -30,8 +31,8 @@ export function AdminLayout() {
     storageKey: persistStoreKey,
   });
 
-  const [tabs, setTabs] = useState(() =>
-    validateTabs(getTabsFromStorage() || [], router),
+  const [paths, setPaths] = useState(() =>
+    validateTabPaths(getTabsFromStorage() || [], router),
   );
 
   const config = useMemo(
@@ -43,21 +44,32 @@ export function AdminLayout() {
     [router],
   );
 
-  const { activeTabId, setActiveTabId, uiTabs } = useRouterTabs({
+  const { tabs, activeTab } = useRouterTabs({
     router,
-    tabs,
-    onTabsChange: setTabs,
+    paths,
+    onPathsChange: setPaths,
     config: config,
-    fallbackPath: homeRoute,
   });
 
   useEffect(() => {
-    return persistTabs(tabs);
-  }, [tabs, persistTabs]);
+    return persistTabs(paths);
+  }, [paths, persistTabs]);
 
-  const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(uiTabs.map((uiTab) => uiTab.id));
+  const setTabs = (tabs: TabModel[]) => {
+    setPaths(tabs.map((tab) => tab.id));
   };
+
+  const setActiveTabId = (id: string | undefined) => {
+    setTimeout(() => {
+      const [pathname, search] = (id || homeRoute).split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
+    });
+  };
+
+  const activeTabId = activeTab?.id;
 
   return (
     <div css={layoutStyles}>
@@ -66,8 +78,9 @@ export function AdminLayout() {
         <header css={headerStyles}>John Doe</header>
         <Tabs
           apiRef={apiRef}
-          tabs={uiTabs.map((tab) => tab.properties)}
-          onTabsChange={setUiTabs}
+          tabs={tabs}
+          initialTabs={tabs}
+          onTabsChange={setTabs}
           hasControlledActiveTabId
           activeTabId={activeTabId}
           onActiveTabIdChange={setActiveTabId}

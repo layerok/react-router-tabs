@@ -1,3 +1,3 @@
-import { RouterTabModel } from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath } from "src/lib/tabs/useRouterTabs.tsx";
 
-export const theEnd = (tabs: RouterTabModel[]) => tabs.length;
+export const theEnd = (paths: RouterTabPath[]) => paths.length;

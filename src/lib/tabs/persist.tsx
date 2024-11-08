@@ -4,7 +4,7 @@ import {
 } from "src/lib/storage/create-storage-driver.ts";
 import { useCallback } from "react";
 
-import { RouterTabModel } from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath } from "src/lib/tabs/useRouterTabs.tsx";
 
 export const usePersistTabs = ({
   storageKey,
@@ -15,11 +15,11 @@ export const usePersistTabs = ({
 }) => {
   return {
     getTabsFromStorage: useCallback(
-      () => storage.get<RouterTabModel[]>(storageKey) || [],
+      () => storage.get<RouterTabPath[]>(storageKey) || [],
       [storageKey, storage],
     ),
     persistTabs: useCallback(
-      (tabs: RouterTabModel[]) => {
+      (tabs: RouterTabPath[]) => {
         const onUnload = () => {
           // save on window close
           // it doesn't make sense for memory storage
