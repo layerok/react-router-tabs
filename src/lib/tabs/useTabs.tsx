@@ -156,7 +156,7 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     if (runHandlers) {
       subStateKeys.forEach((subStateKey) => {
         const subState = newState[subStateKey];
-        const subStateHandler = {
+        const subStateChangeHandler = {
           tabs: onTabsChange,
           activeTabId: onActiveTabIdChange,
           startPinnedTabs: onStartPinnedTabsChange,
@@ -165,7 +165,7 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
           parentTabsApi: () => {},
         }[subStateKey];
         // @ts-ignore
-        subStateHandler?.(subState);
+        subStateChangeHandler?.(subState);
       });
     }
 
