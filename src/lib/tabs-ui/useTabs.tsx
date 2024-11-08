@@ -136,6 +136,11 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     parentTabsApi: () => {},
   });
 
+  handlersMapRef.current.tabs = onTabsChange;
+  handlersMapRef.current.activeTabId = onActiveTabIdChange;
+  handlersMapRef.current.startPinnedTabs = onStartPinnedTabsChange;
+  handlersMapRef.current.endPinnedTabs = onEndPinnedTabsChange;
+
   const stateRef = useRef<State>({
     tabs: initialTabs,
     activeTabId: initialActiveTabId,

@@ -1,8 +1,9 @@
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { matchRoutes, Outlet, useNavigate, useParams } from "react-router-dom";
 
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
 import {
+  matchRouterTab,
   RouterTabModel,
   TabConfig,
   useRouterTabs,
@@ -31,98 +32,108 @@ const persistStoreKey = {
 export function CategoriesRoute() {
   const { router } = useDataRouterContext();
 
-  const { getTabsFromStorage, persistTabs } = usePersistTabs({
-    storageKey: persistStoreKey,
-    storage: localStorageDriver,
-  });
+  // const { getTabsFromStorage, persistTabs } = usePersistTabs({
+  //   storageKey: persistStoreKey,
+  //   storage: localStorageDriver,
+  // });
 
-  const defaultTabs: RouterTabModel[] = [
-    {
-      id: categoriesRoute,
-      route: {
-        id: categoriesRoute,
-      },
-      path: categoriesRoute,
-    },
-  ];
+  const defaultTabs: RouterTabModel[] = [categoriesRoute];
+  //
+  // const persistedTabs = validateTabs(defaultTabs, router);
+  //
+  // console.log("persistedTabs", persistedTabs.length);
 
-  const [tabs, setTabs] = useState<RouterTabModel[]>(() =>
-    validateTabs(getTabsFromStorage() || defaultTabs, router.routes.slice()),
-  );
+  const [paths, setPaths] = useState<RouterTabModel[]>(defaultTabs);
 
-  useEffect(() => {
-    return persistTabs(tabs);
-  }, [tabs, persistTabs]);
-
-  const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([
-    categoriesRoute,
-  ]);
-
-  const config = useMemo<TabConfig[]>(
+  const config = useMemo<
+    TabConfig<{
+      id: string;
+      title: string;
+      isClosable: boolean;
+      content: ReactNode;
+    }>[]
+  >(
     () => [
       {
-        title: () => "All Categories",
+        properties: (match) => ({
+          id: match.pathname,
+          title: "All Categories",
+          content: <Outlet />,
+          isClosable: false,
+        }),
         shouldOpen: (match) => match.route.path === categoriesRoute,
         insertAt: theBeginning,
       },
       {
-        title: ({ params }) => {
-          const category = categories.find(
-            (category) => String(category.id) == params.id,
-          );
-          return category!.title;
-        },
+        properties: (match) => ({
+          id: match.pathname,
+          title: (() => {
+            const category = categories.find(
+              (category) => String(category.id) == match.params.id,
+            );
+            return category!.title;
+          })(),
+          content: <Outlet />,
+          isClosable: true,
+        }),
         shouldOpen: (match) => match.route.path === categoryDetailRoute,
-        insertAt: () => startPinnedTabs.length,
+        insertAt: () => 1,
       },
     ],
     [],
   );
 
-  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
+  const { uiTabs } = useRouterTabs({
     router,
     config: config,
     fallbackPath: homeRoute,
-    tabs,
-    onTabsChange: setTabs,
+    tabs: paths,
+    onTabsChange: setPaths,
   });
 
-  const uiTabs: TabModel[] = tabs.map((tab) => {
-    return {
-      id: tab.id,
-      content: <Outlet />,
-      title: getTabTitleByTabPath(tab.path)!,
-      isClosable: !startPinnedTabs.includes(tab.id),
-    };
-  });
+  const setActiveTabId = (id: string | undefined) => {
+    const tab = paths.find((path) => {
+      const pathname = id;
+      const url = new URL(path, window.location.origin);
+      const matches = matchRoutes(router.routes, url) || [];
+      const result = matchRouterTab(matches, config);
+      return result?.match.pathname === pathname;
+    });
+
+    setTimeout(() => {
+      const [pathname, search] = (tab || homeRoute).split("?");
+      router.navigate({
+        pathname,
+        search,
+      });
+    });
+  };
+
+  const matches = matchRoutes(router.routes, router.state.location) || [];
+  const result = matchRouterTab(matches, config);
+
+  const activeTabId = result ? result.match.pathname : undefined;
+
+  // useEffect(() => {
+  //   return persistTabs(paths);
+  // }, [paths, persistTabs]);
 
   const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(
-      uiTabs.map((uiTab) => {
-        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
-
-        return {
-          id: uiTab.id,
-          route: routerTab!.route,
-          path: routerTab!.path,
-        };
-      }),
-    );
+    setPaths(uiTabs.map((uiTab) => uiTab.id));
   };
+
+  const finalTabs = uiTabs.map((tab) => tab.properties);
 
   return (
     <div css={layoutStyles}>
       <Tabs
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}
-        tabs={uiTabs}
-        startPinnedTabs={startPinnedTabs}
+        tabs={finalTabs}
         initialActiveTabId={activeTabId}
-        initialTabs={uiTabs}
-        initialStartPinnedTabs={startPinnedTabs}
+        initialTabs={finalTabs}
         onTabsChange={setUiTabs}
         hasControlledActiveTabId
-        onStartPinnedTabsChange={setStartPinnedTabsChange}
       />
     </div>
   );

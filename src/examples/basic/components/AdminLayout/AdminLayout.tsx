@@ -12,9 +12,8 @@ import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
-import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.ts";
+import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
-import { Outlet } from "react-router-dom";
 import { TabsApi } from "src/lib/tabs-ui/useTabs.tsx";
 
 const persistStoreKey = {
@@ -32,10 +31,8 @@ export function AdminLayout() {
   });
 
   const [tabs, setTabs] = useState(() =>
-    validateTabs(getTabsFromStorage() || [], router.routes.slice()),
+    validateTabs(getTabsFromStorage() || [], router),
   );
-
-  const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([]);
 
   const config = useMemo(
     () =>
@@ -46,7 +43,7 @@ export function AdminLayout() {
     [router],
   );
 
-  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
+  const { activeTabId, setActiveTabId, uiTabs } = useRouterTabs({
     router,
     tabs,
     onTabsChange: setTabs,
@@ -58,27 +55,8 @@ export function AdminLayout() {
     return persistTabs(tabs);
   }, [tabs, persistTabs]);
 
-  const uiTabs: TabModel[] = tabs.map((tab) => {
-    return {
-      id: tab.id,
-      content: <Outlet />,
-      title: getTabTitleByTabPath(tab.path)!,
-      isClosable: false,
-    };
-  });
-
   const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(
-      uiTabs.map((uiTab) => {
-        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
-
-        return {
-          id: uiTab.id,
-          route: routerTab!.route,
-          path: routerTab!.path,
-        };
-      }),
-    );
+    setTabs(uiTabs.map((uiTab) => uiTab.id));
   };
 
   return (
@@ -88,10 +66,8 @@ export function AdminLayout() {
         <header css={headerStyles}>John Doe</header>
         <Tabs
           apiRef={apiRef}
-          tabs={uiTabs}
+          tabs={uiTabs.map((tab) => tab.properties)}
           onTabsChange={setUiTabs}
-          onStartPinnedTabsChange={setStartPinnedTabsChange}
-          startPinnedTabs={startPinnedTabs}
           hasControlledActiveTabId
           activeTabId={activeTabId}
           onActiveTabIdChange={setActiveTabId}

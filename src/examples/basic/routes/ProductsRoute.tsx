@@ -2,9 +2,8 @@ import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import { replacePathParams } from "src/examples/basic/utils/replacePathParams.ts";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { routeIds } from "../routes.tsx";
 
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
@@ -17,7 +16,7 @@ import {
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
 import { RouterTabModel, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
-import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.ts";
+import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
 
 const persistStoreKey = {
   name: "basic__product-tabs",
@@ -31,23 +30,11 @@ export function ProductsRoute() {
     storage: localStorageDriver,
   });
 
-  const defaultTabs: RouterTabModel[] = [
-    {
-      id: productsListRoute,
-      route: {
-        id: routeIds.product.list,
-      },
-      path: productsListRoute,
-    },
-  ];
+  const defaultTabs: RouterTabModel[] = [productsListRoute];
 
   const [tabs, setTabs] = useState(() =>
-    validateTabs(getTabsFromStorage() || defaultTabs, router.routes.slice()),
+    validateTabs(getTabsFromStorage() || defaultTabs, router),
   );
-
-  const [startPinnedTabs, onStartPinnedTabsChange] = useState([
-    productsListRoute,
-  ]);
 
   const config = useMemo(
     () =>
@@ -58,7 +45,7 @@ export function ProductsRoute() {
     [router],
   );
 
-  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
+  const { activeTabId, setActiveTabId, uiTabs } = useRouterTabs({
     router,
     config: config,
     fallbackPath: homeRoute,
@@ -70,36 +57,16 @@ export function ProductsRoute() {
     return persistTabs(tabs);
   }, [tabs, persistTabs]);
 
-  const uiTabs: TabModel[] = tabs.map((tab) => {
-    return {
-      id: tab.id,
-      content: <Outlet />,
-      title: getTabTitleByTabPath(tab.path)!,
-      isClosable: false,
-    };
-  });
-
   const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(
-      uiTabs.map((uiTab) => {
-        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
-
-        return {
-          id: uiTab.id,
-          route: routerTab!.route,
-          path: routerTab!.path,
-        };
-      }),
-    );
+    setTabs(uiTabs.map((uiTab) => uiTab.id));
   };
 
   return (
     <div>
       <Tabs
-        tabs={uiTabs}
+        tabs={uiTabs.map((tab) => tab.properties)}
+        initialTabs={uiTabs.map((tab) => tab.properties)}
         onTabsChange={setUiTabs}
-        onStartPinnedTabsChange={onStartPinnedTabsChange}
-        startPinnedTabs={startPinnedTabs}
         hasControlledActiveTabId
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}

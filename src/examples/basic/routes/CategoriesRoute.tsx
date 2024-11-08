@@ -1,6 +1,4 @@
 import { Link, Outlet, useParams } from "react-router-dom";
-
-import { routeIds } from "../routes.tsx";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import { RouterTabModel, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
@@ -16,7 +14,7 @@ import {
   categoryDetailRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
-import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.ts";
+import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
 
 const persistStoreKey = {
   name: "basic__category-tabs",
@@ -31,27 +29,15 @@ export function CategoriesRoute() {
     storage: localStorageDriver,
   });
 
-  const defaultTabs: RouterTabModel[] = [
-    {
-      id: categoriesListRoute,
-      route: {
-        id: routeIds.category.list,
-      },
-      path: categoriesListRoute,
-    },
-  ];
+  const defaultTabs: RouterTabModel[] = [categoriesListRoute];
 
   const [tabs, setTabs] = useState<RouterTabModel[]>(() =>
-    validateTabs(getTabsFromStorage() || defaultTabs, router.routes.slice()),
+    validateTabs(getTabsFromStorage() || defaultTabs, router),
   );
 
   useEffect(() => {
     return persistTabs(tabs);
   }, [tabs, persistTabs]);
-
-  const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([
-    categoriesListRoute,
-  ]);
 
   const config = useMemo(
     () =>
@@ -62,35 +48,26 @@ export function CategoriesRoute() {
     [router],
   );
 
-  const { activeTabId, setActiveTabId, getTabTitleByTabPath } = useRouterTabs({
-    router,
-    config: config,
-    fallbackPath: homeRoute,
-    tabs,
-    onTabsChange: setTabs,
-  });
+  const { activeTabId, setActiveTabId, getTabPropertiesByTabPath } =
+    useRouterTabs({
+      router,
+      config: config,
+      fallbackPath: homeRoute,
+      tabs,
+      onTabsChange: setTabs,
+    });
 
   const uiTabs: TabModel[] = tabs.map((tab) => {
     return {
-      id: tab.id,
+      id: tab,
       content: <Outlet />,
-      title: getTabTitleByTabPath(tab.path)!,
+      title: getTabPropertiesByTabPath(tab)!.title,
       isClosable: false,
     };
   });
 
   const setUiTabs = (uiTabs: TabModel[]) => {
-    setTabs(
-      uiTabs.map((uiTab) => {
-        const routerTab = tabs.find((tab) => tab.id === uiTab.id);
-
-        return {
-          id: uiTab.id,
-          route: routerTab!.route,
-          path: routerTab!.path,
-        };
-      }),
-    );
+    setTabs(uiTabs.map((uiTab) => uiTab.id));
   };
 
   return (
@@ -99,10 +76,8 @@ export function CategoriesRoute() {
         activeTabId={activeTabId}
         onActiveTabIdChange={setActiveTabId}
         tabs={uiTabs}
-        startPinnedTabs={startPinnedTabs}
         onTabsChange={setUiTabs}
         hasControlledActiveTabId
-        onStartPinnedTabsChange={setStartPinnedTabsChange}
       />
     </div>
   );
