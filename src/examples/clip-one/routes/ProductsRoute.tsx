@@ -18,7 +18,6 @@ import {
   productsRoute,
 } from "../constants/routes.constants.ts";
 import {
-  InsertMethod,
   RouterTabModel,
   TabConfig,
   useRouterTabs,
@@ -26,6 +25,8 @@ import {
 import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 import { Button } from "src/examples/clip-one/components/Button/Button.tsx";
+import { theBeginning } from "src/lib/tabs/theBeginning.ts";
+import { theEnd } from "src/lib/tabs/theEnd.ts";
 
 type DetailParams = { id: string };
 
@@ -53,7 +54,7 @@ export function ProductsRoute() {
     {
       title: () => "All products",
       shouldOpen: (match) => match.route.path === productsRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: theBeginning,
     },
     {
       title: (match) => {
@@ -63,12 +64,12 @@ export function ProductsRoute() {
         return product!.title;
       },
       shouldOpen: (match) => match.route.path === productDetailRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: () => startPinnedTabs.length,
     },
     {
       title: () => "New product",
       shouldOpen: (match) => match.route.path === productsCreateRoute,
-      insertMethod: InsertMethod.Append,
+      insertAt: theEnd,
     },
   ]);
 
@@ -86,9 +87,7 @@ export function ProductsRoute() {
     router,
     config,
     fallbackPath: homeRoute,
-    startPinnedTabs,
     tabs,
-    endPinnedTabs,
     onTabsChange: setTabs,
   });
 
@@ -223,13 +222,13 @@ export function ProductDetailRoute() {
       {
         title: () => "General",
         shouldOpen: (match) => match.route.path === productDetailRoute,
-        insertMethod: InsertMethod.Prepend,
+        insertAt: theBeginning,
       },
       {
         title: () => "Settings",
         shouldOpen: (match) =>
           match.route.path === productDetailSettingTabsRoute,
-        insertMethod: InsertMethod.Prepend,
+        insertAt: theBeginning,
       },
     ],
     [],
@@ -240,8 +239,6 @@ export function ProductDetailRoute() {
     config,
     fallbackPath: homeRoute,
     tabs,
-    startPinnedTabs: useMemo(() => [], []),
-    endPinnedTabs: useMemo(() => [], []),
     onTabsChange: setTabs,
   });
 

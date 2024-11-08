@@ -6,14 +6,9 @@ import { Router } from "@remix-run/router";
 
 export type TabConfig = {
   shouldOpen: (match: DataRouteMatch) => boolean;
-  insertMethod: InsertMethod;
+  insertAt: (tabs: RouterTabModel[]) => number;
   title: (match: DataRouteMatch) => string;
 };
-
-export enum InsertMethod {
-  Append = "append",
-  Prepend = "prepend",
-}
 
 export type RouterTabModel = {
   id: string;
@@ -53,19 +48,9 @@ export const useRouterTabs = (options: {
   config: TabConfig[];
   onTabsChange?: TabsChangeCallback;
   tabs: RouterTabModel[];
-  startPinnedTabs: string[];
-  endPinnedTabs: string[];
   fallbackPath: string;
 }) => {
-  const {
-    fallbackPath,
-    onTabsChange,
-    tabs = [],
-    startPinnedTabs,
-    endPinnedTabs,
-    config,
-    router,
-  } = options;
+  const { fallbackPath, onTabsChange, tabs = [], config, router } = options;
 
   const updateTabs = useCallback(
     (state: RouterState) => {
@@ -99,8 +84,6 @@ export const useRouterTabs = (options: {
             path,
           });
         } else {
-          const prepend = definition.insertMethod === InsertMethod.Prepend;
-
           const newTab: RouterTabModel = {
             id: match.pathname,
             route: {
@@ -108,22 +91,12 @@ export const useRouterTabs = (options: {
             },
             path,
           };
-
-          // prepend a new tab
-          if (prepend) {
-            return insertAt(prevTabs, startPinnedTabs.length, newTab);
-          } else {
-            return insertAt(
-              prevTabs,
-              prevTabs.length - endPinnedTabs.length,
-              newTab,
-            );
-          }
+          return insertAt(prevTabs, definition.insertAt(prevTabs), newTab);
         }
       };
       onTabsChange?.(handleTabsUpdate);
     },
-    [startPinnedTabs, config, onTabsChange, endPinnedTabs],
+    [config, onTabsChange],
   );
 
   useEffect(() => {

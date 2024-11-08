@@ -70,8 +70,8 @@ const productRoutes = [
           tabs: [
             {
               key: TabStoreKey.Products,
-              title: ({ params }: { params: { id: string } }) =>
-                `product ${params.id}`,
+              title: (match) => `product ${match.params.id}`,
+              insertAt: () => 1,
             },
           ],
         } as Handle,
@@ -115,8 +115,8 @@ const categoryRoutes = [
           tabs: [
             {
               key: TabStoreKey.Categories,
-              title: ({ params }: { params: { id: string } }) =>
-                `category ${params.id}`,
+              title: (match) => `category ${match.params.id}`,
+              insertAt: () => 1,
             },
           ],
         } as Handle,

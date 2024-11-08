@@ -62,8 +62,6 @@ export function ProductsRoute() {
     router,
     config: config,
     fallbackPath: homeRoute,
-    startPinnedTabs,
-    endPinnedTabs: useMemo(() => [], []),
     tabs,
     onTabsChange: setTabs,
   });

@@ -50,8 +50,6 @@ export function AdminLayout() {
     router,
     tabs,
     onTabsChange: setTabs,
-    startPinnedTabs,
-    endPinnedTabs: useMemo(() => [], []),
     config: config,
     fallbackPath: homeRoute,
   });

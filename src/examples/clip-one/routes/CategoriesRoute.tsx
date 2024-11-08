@@ -3,7 +3,6 @@ import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
 import {
-  InsertMethod,
   RouterTabModel,
   TabConfig,
   useRouterTabs,
@@ -22,6 +21,7 @@ import {
 } from "../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
+import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 
 const persistStoreKey = {
   name: "clip-one__category-tabs",
@@ -58,14 +58,12 @@ export function CategoriesRoute() {
     categoriesRoute,
   ]);
 
-  const [endPinnedTabs] = useState<string[]>([]);
-
   const config = useMemo<TabConfig[]>(
     () => [
       {
         title: () => "All Categories",
         shouldOpen: (match) => match.route.path === categoriesRoute,
-        insertMethod: InsertMethod.Prepend,
+        insertAt: theBeginning,
       },
       {
         title: ({ params }) => {
@@ -75,7 +73,7 @@ export function CategoriesRoute() {
           return category!.title;
         },
         shouldOpen: (match) => match.route.path === categoryDetailRoute,
-        insertMethod: InsertMethod.Prepend,
+        insertAt: () => startPinnedTabs.length,
       },
     ],
     [],
@@ -85,8 +83,6 @@ export function CategoriesRoute() {
     router,
     config: config,
     fallbackPath: homeRoute,
-    endPinnedTabs,
-    startPinnedTabs,
     tabs,
     onTabsChange: setTabs,
   });

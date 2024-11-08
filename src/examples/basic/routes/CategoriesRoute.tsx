@@ -66,8 +66,6 @@ export function CategoriesRoute() {
     router,
     config: config,
     fallbackPath: homeRoute,
-    endPinnedTabs: useMemo(() => [], []),
-    startPinnedTabs,
     tabs,
     onTabsChange: setTabs,
   });

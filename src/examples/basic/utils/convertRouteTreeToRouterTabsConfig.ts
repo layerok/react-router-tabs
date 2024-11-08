@@ -1,7 +1,8 @@
 import { RouteObject } from "react-router-dom";
 import { flattenRoutes } from "src/lib/tabs/flattenRoutes.ts";
 import { Handle } from "src/examples/basic/types.ts";
-import { InsertMethod, TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
+import { TabConfig } from "src/lib/tabs/useRouterTabs.tsx";
+import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 
 export const convertRouteTreeToRouterTabsConfig = (
   tree: RouteObject[],
@@ -20,7 +21,7 @@ export const convertRouteTreeToRouterTabsConfig = (
     return {
       title: tabMeta!.title,
       shouldOpen: (match) => match.route.id === route.id!,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: tabMeta!.insertAt || theBeginning,
     };
   });
   return config;

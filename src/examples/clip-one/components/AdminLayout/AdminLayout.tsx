@@ -1,6 +1,6 @@
 import { Sidebar } from "../Sidebar/Sidebar.tsx";
 import { Tabs } from "../Tabs/Tabs.tsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 
 import { validateTabs, usePersistTabs } from "src/lib/tabs";
@@ -13,14 +13,11 @@ import {
   productsRoute,
   suppliersRoute,
 } from "../../constants/routes.constants.ts";
-import {
-  InsertMethod,
-  TabConfig,
-  useRouterTabs,
-} from "src/lib/tabs/useRouterTabs.tsx";
+import { TabConfig, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
 import { Outlet } from "react-router-dom";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
+import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 
 const persistStoreKey = {
   name: "clip-one__main-tabs",
@@ -45,22 +42,22 @@ export function AdminLayout() {
     {
       title: () => "Dashboard",
       shouldOpen: (match) => match.route.path === dashboardRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: theBeginning,
     },
     {
       title: () => "Categories",
       shouldOpen: (match) => match.route.path === categoriesRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: theBeginning,
     },
     {
       title: () => "Products",
       shouldOpen: (match) => match.route.path === productsRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: theBeginning,
     },
     {
       title: () => "Suppliers",
       shouldOpen: (match) => match.route.path === suppliersRoute,
-      insertMethod: InsertMethod.Prepend,
+      insertAt: theBeginning,
     },
   ]);
 
@@ -68,9 +65,7 @@ export function AdminLayout() {
     router,
     config,
     tabs,
-    endPinnedTabs: useMemo(() => [], []),
     onTabsChange: setTabs,
-    startPinnedTabs,
     fallbackPath: homeRoute,
   });
 
