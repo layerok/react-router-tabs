@@ -6,20 +6,25 @@ import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabs, usePersistTabs } from "src/lib/tabs";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
-import { homeRoute } from "../../constants/routes.constants.ts";
+import {
+  categoriesRoute,
+  dashboardRoute,
+  homeRoute,
+  productsRoute,
+  suppliersRoute,
+} from "../../constants/routes.constants.ts";
 import {
   InsertMethod,
   TabConfig,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
-import { routeIds } from "../../routes.tsx";
 import { css } from "@emotion/react";
 import { Outlet } from "react-router-dom";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 const persistStoreKey = {
   name: "clip-one__main-tabs",
-  version: "2.0",
+  version: "4.0",
 };
 
 export function AdminLayout() {
@@ -39,22 +44,22 @@ export function AdminLayout() {
   const [config] = useState<TabConfig[]>(() => [
     {
       title: () => "Dashboard",
-      shouldOpen: (match) => match.route.id === routeIds.dashboard,
+      shouldOpen: (match) => match.route.path === dashboardRoute,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Categories",
-      shouldOpen: (match) => match.route.id === routeIds.category.layout,
+      shouldOpen: (match) => match.route.path === categoriesRoute,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Products",
-      shouldOpen: (match) => match.route.id === routeIds.product.layout,
+      shouldOpen: (match) => match.route.path === productsRoute,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Suppliers",
-      shouldOpen: (match) => match.route.id === routeIds.supplier.layout,
+      shouldOpen: (match) => match.route.path === suppliersRoute,
       insertMethod: InsertMethod.Prepend,
     },
   ]);
@@ -78,7 +83,7 @@ export function AdminLayout() {
       id: tab.id,
       content: <Outlet />,
       title: getTabTitleByTabPath(tab.path)!,
-      isClosable: false,
+      isClosable: true,
     };
   });
 

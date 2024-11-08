@@ -19,7 +19,6 @@ export type RouterTabModel = {
   id: string;
   route: {
     id: string;
-    path?: string;
   };
   path: string;
 };
@@ -106,7 +105,6 @@ export const useRouterTabs = (options: {
             id: match.pathname,
             route: {
               id: match.route.id,
-              path: match.route.path,
             },
             path,
           };

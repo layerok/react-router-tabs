@@ -1,6 +1,5 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 
-import { routeIds } from "../routes.tsx";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
 import {
@@ -18,15 +17,15 @@ import { validateTabs } from "src/lib/tabs";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import {
   homeRoute,
-  categoriesListRoute,
   categoryDetailRoute,
+  categoriesRoute,
 } from "../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 
 const persistStoreKey = {
   name: "clip-one__category-tabs",
-  version: "2.0",
+  version: "4.0",
 };
 
 export function CategoriesRoute() {
@@ -39,12 +38,11 @@ export function CategoriesRoute() {
 
   const defaultTabs: RouterTabModel[] = [
     {
-      id: categoriesListRoute,
+      id: categoriesRoute,
       route: {
-        id: routeIds.category.list,
-        path: categoriesListRoute,
+        id: categoriesRoute,
       },
-      path: categoriesListRoute,
+      path: categoriesRoute,
     },
   ];
 
@@ -57,7 +55,7 @@ export function CategoriesRoute() {
   }, [tabs, persistTabs]);
 
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([
-    categoriesListRoute,
+    categoriesRoute,
   ]);
 
   const [endPinnedTabs] = useState<string[]>([]);
@@ -66,7 +64,7 @@ export function CategoriesRoute() {
     () => [
       {
         title: () => "All Categories",
-        shouldOpen: (match) => match.route.id === routeIds.category.list,
+        shouldOpen: (match) => match.route.path === categoriesRoute,
         insertMethod: InsertMethod.Prepend,
       },
       {
@@ -76,7 +74,7 @@ export function CategoriesRoute() {
           );
           return category!.title;
         },
-        shouldOpen: (match) => match.route.id === routeIds.category.detail,
+        shouldOpen: (match) => match.route.path === categoryDetailRoute,
         insertMethod: InsertMethod.Prepend,
       },
     ],
@@ -98,7 +96,7 @@ export function CategoriesRoute() {
       id: tab.id,
       content: <Outlet />,
       title: getTabTitleByTabPath(tab.path)!,
-      isClosable: false,
+      isClosable: !startPinnedTabs.includes(tab.id),
     };
   });
 

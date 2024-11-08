@@ -3,7 +3,6 @@ import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { routeIds } from "../routes.tsx";
 import { data as products } from "../data/products.json";
 
 import { usePersistTabs } from "src/lib/tabs/persist.tsx";
@@ -16,6 +15,7 @@ import {
   productDetailSettingTabsRoute,
   productsCreateRoute,
   productsListRoute,
+  productsRoute,
 } from "../constants/routes.constants.ts";
 import {
   InsertMethod,
@@ -31,7 +31,7 @@ type DetailParams = { id: string };
 
 const persistStoreKey = {
   name: "clip-one__product-tabs",
-  version: "2.0",
+  version: "4.0",
 };
 
 export function ProductsRoute() {
@@ -44,8 +44,7 @@ export function ProductsRoute() {
   const [listTab] = useState(() => ({
     id: productsListRoute,
     route: {
-      id: routeIds.product.list,
-      path: productsListRoute,
+      id: productsListRoute,
     },
     path: productsListRoute,
   }));
@@ -53,7 +52,7 @@ export function ProductsRoute() {
   const [config] = useState<TabConfig[]>(() => [
     {
       title: () => "All products",
-      shouldOpen: (match) => match.route.id === routeIds.product.list,
+      shouldOpen: (match) => match.route.path === productsRoute,
       insertMethod: InsertMethod.Prepend,
     },
     {
@@ -63,12 +62,12 @@ export function ProductsRoute() {
         );
         return product!.title;
       },
-      shouldOpen: (match) => match.route.id === routeIds.product.detail,
+      shouldOpen: (match) => match.route.path === productDetailRoute,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "New product",
-      shouldOpen: (match) => match.route.id === routeIds.product.create,
+      shouldOpen: (match) => match.route.path === productsCreateRoute,
       insertMethod: InsertMethod.Append,
     },
   ]);
@@ -78,7 +77,7 @@ export function ProductsRoute() {
   );
 
   const [startPinnedTabs, setStartPinnedTabs] = useState<string[]>([
-    productsListRoute,
+    productsRoute,
   ]);
 
   const [endPinnedTabs, setEndPinnedTabs] = useState<string[]>([]);
@@ -102,7 +101,7 @@ export function ProductsRoute() {
       id: tab.id,
       content: <Outlet />,
       title: getTabTitleByTabPath(tab.path)!,
-      isClosable: startPinnedTabs.includes(tab.id),
+      isClosable: !startPinnedTabs.includes(tab.id),
     };
   });
 
@@ -195,8 +194,7 @@ export function ProductDetailRoute() {
     () => ({
       id: productDetailRoute.replace(":id", params.id),
       route: {
-        id: routeIds.product.detail,
-        path: productDetailRoute,
+        id: productDetailRoute,
       },
       path: productDetailRoute.replace(":id", params.id),
     }),
@@ -207,8 +205,7 @@ export function ProductDetailRoute() {
       id: productDetailSettingTabsRoute.replace(":id", params.id),
 
       route: {
-        id: routeIds.product.tabs.settings,
-        path: productDetailSettingTabsRoute,
+        id: productDetailSettingTabsRoute,
       },
       path: productDetailSettingTabsRoute.replace(":id", params.id),
     }),
@@ -225,13 +222,13 @@ export function ProductDetailRoute() {
     () => [
       {
         title: () => "General",
-        shouldOpen: (match) => match.route.id === routeIds.product.detail,
+        shouldOpen: (match) => match.route.path === productDetailRoute,
         insertMethod: InsertMethod.Prepend,
       },
       {
         title: () => "Settings",
         shouldOpen: (match) =>
-          match.route.id === routeIds.product.tabs.settings,
+          match.route.path === productDetailSettingTabsRoute,
         insertMethod: InsertMethod.Prepend,
       },
     ],
