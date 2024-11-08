@@ -44,6 +44,8 @@ export function AdminLayout() {
     [router],
   );
 
+  console.log("config", config);
+
   const { tabs, activeTab } = useRouterTabs({
     router,
     paths,

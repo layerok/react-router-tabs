@@ -23,11 +23,11 @@ export const convertRouteTreeToRouterTabsConfig = (
     return {
       mapToUiState: (match, path) => ({
         id: path,
+        title: tabMeta!.title(match),
         isClosable: true,
         content: <Outlet />,
-        title: tabMeta!.title(match),
       }),
-      shouldOpen: whenRoutePathIs(route.id!),
+      shouldOpen: whenRoutePathIs(route.path!),
       insertAt: tabMeta!.insertAt || theBeginning,
     };
   });
