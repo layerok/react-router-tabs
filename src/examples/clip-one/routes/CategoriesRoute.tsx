@@ -66,7 +66,7 @@ export function CategoriesRoute() {
     () => [
       {
         title: () => "All Categories",
-        routeId: routeIds.category.list,
+        shouldOpen: (match) => match.route.id === routeIds.category.list,
         insertMethod: InsertMethod.Prepend,
       },
       {
@@ -76,7 +76,7 @@ export function CategoriesRoute() {
           );
           return category!.title;
         },
-        routeId: routeIds.category.detail,
+        shouldOpen: (match) => match.route.id === routeIds.category.detail,
         insertMethod: InsertMethod.Prepend,
       },
     ],

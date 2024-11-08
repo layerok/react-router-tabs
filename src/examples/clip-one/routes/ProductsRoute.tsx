@@ -53,7 +53,7 @@ export function ProductsRoute() {
   const [config] = useState<TabConfig[]>(() => [
     {
       title: () => "All products",
-      routeId: routeIds.product.list,
+      shouldOpen: (match) => match.route.id === routeIds.product.list,
       insertMethod: InsertMethod.Prepend,
     },
     {
@@ -63,13 +63,12 @@ export function ProductsRoute() {
         );
         return product!.title;
       },
-      routeId: routeIds.product.detail,
+      shouldOpen: (match) => match.route.id === routeIds.product.detail,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "New product",
-      id: productsCreateRoute,
-      routeId: routeIds.product.create,
+      shouldOpen: (match) => match.route.id === routeIds.product.create,
       insertMethod: InsertMethod.Append,
     },
   ]);
@@ -222,16 +221,17 @@ export function ProductDetailRoute() {
     setTabs([generalTab, settingsTab]);
   }, [generalTab, settingsTab]);
 
-  const config = useMemo(
+  const config = useMemo<TabConfig[]>(
     () => [
       {
         title: () => "General",
-        routeId: routeIds.product.detail,
+        shouldOpen: (match) => match.route.id === routeIds.product.detail,
         insertMethod: InsertMethod.Prepend,
       },
       {
         title: () => "Settings",
-        routeId: routeIds.product.tabs.settings,
+        shouldOpen: (match) =>
+          match.route.id === routeIds.product.tabs.settings,
         insertMethod: InsertMethod.Prepend,
       },
     ],

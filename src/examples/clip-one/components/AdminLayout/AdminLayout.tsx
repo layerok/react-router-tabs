@@ -7,7 +7,11 @@ import { validateTabs, usePersistTabs } from "src/lib/tabs";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
-import { InsertMethod, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import {
+  InsertMethod,
+  TabConfig,
+  useRouterTabs,
+} from "src/lib/tabs/useRouterTabs.tsx";
 import { routeIds } from "../../routes.tsx";
 import { css } from "@emotion/react";
 import { Outlet } from "react-router-dom";
@@ -32,25 +36,25 @@ export function AdminLayout() {
 
   const [startPinnedTabs, setStartPinnedTabsChange] = useState<string[]>([]);
 
-  const [config] = useState(() => [
+  const [config] = useState<TabConfig[]>(() => [
     {
       title: () => "Dashboard",
-      routeId: routeIds.dashboard,
+      shouldOpen: (match) => match.route.id === routeIds.dashboard,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Categories",
-      routeId: routeIds.category.layout,
+      shouldOpen: (match) => match.route.id === routeIds.category.layout,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Products",
-      routeId: routeIds.product.layout,
+      shouldOpen: (match) => match.route.id === routeIds.product.layout,
       insertMethod: InsertMethod.Prepend,
     },
     {
       title: () => "Suppliers",
-      routeId: routeIds.supplier.layout,
+      shouldOpen: (match) => match.route.id === routeIds.supplier.layout,
       insertMethod: InsertMethod.Prepend,
     },
   ]);

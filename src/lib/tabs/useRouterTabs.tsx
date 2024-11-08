@@ -5,7 +5,7 @@ import { last, replaceAt, insertAt } from "src/utils/array-utils.ts";
 import { Router } from "@remix-run/router";
 
 export type TabConfig = {
-  routeId: string;
+  shouldOpen: (match: DataRouteMatch) => boolean;
   insertMethod: InsertMethod;
   title: (match: DataRouteMatch) => string;
 };
@@ -38,9 +38,7 @@ export const matchRouterTab = (
 ) => {
   for (let i = matches.length - 1; i > -1; i--) {
     const match = matches[i];
-    const definition = config.find(
-      (definition) => definition.routeId === match.route.id,
-    );
+    const definition = config.find((def) => def.shouldOpen(match));
     if (definition) {
       return {
         definition,

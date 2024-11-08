@@ -19,7 +19,7 @@ export const convertRouteTreeToRouterTabsConfig = (
 
     return {
       title: tabMeta!.title,
-      routeId: route.id!,
+      shouldOpen: (match) => match.route.id === route.id!,
       insertMethod: InsertMethod.Prepend,
     };
   });
