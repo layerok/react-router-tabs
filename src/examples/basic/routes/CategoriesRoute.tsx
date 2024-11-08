@@ -36,7 +36,6 @@ export function CategoriesRoute() {
       id: categoriesListRoute,
       route: {
         id: routeIds.category.list,
-        path: categoriesListRoute,
       },
       path: categoriesListRoute,
     },

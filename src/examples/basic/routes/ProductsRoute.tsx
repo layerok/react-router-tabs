@@ -36,7 +36,6 @@ export function ProductsRoute() {
       id: productsListRoute,
       route: {
         id: routeIds.product.list,
-        path: productsListRoute,
       },
       path: productsListRoute,
     },
