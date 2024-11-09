@@ -5,7 +5,7 @@ import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { data as products } from "../data/products.json";
 
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
@@ -18,7 +18,7 @@ import {
 } from "../constants/routes.constants.ts";
 import {
   RouterTabPath,
-  TabConfig,
+  TabDefinition,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
@@ -185,7 +185,7 @@ export function ProductDetailRoute() {
     productDetailSettingTabsRoute.replace(":id", params.id),
   ]);
 
-  const config = useMemo<TabConfig<TabModel>[]>(
+  const config = useMemo<TabDefinition<TabModel>[]>(
     () => [
       {
         mapToUiState: (_, tab) => ({

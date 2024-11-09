@@ -9,11 +9,11 @@ export function HomeRoute() {
       <div css={innerStyles}>
         <h1 css={titleStyles}>Examples:</h1>
         <ul>
-          <li>
+          <li css={listItemStyles}>
             <Link to={basicHomeRoute}>Basic</Link>
           </li>
-          <li>
-            <Link to={clipOneHomeRoute}>Clip one</Link>
+          <li css={listItemStyles}>
+            <Link to={clipOneHomeRoute}>Clip one admin</Link>
           </li>
         </ul>
       </div>
@@ -29,6 +29,10 @@ const containerStyles = css`
   align-items: center;
   justify-content: center;
   flex-direction: column;
+`;
+
+const listItemStyles = css`
+  white-space: nowrap;
 `;
 
 const innerStyles = css`

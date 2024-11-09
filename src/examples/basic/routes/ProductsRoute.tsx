@@ -5,7 +5,7 @@ import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";

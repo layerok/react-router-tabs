@@ -12,7 +12,7 @@ import {
 } from "../../constants/routes.constants.ts";
 import {
   RouterTabPath,
-  TabConfig,
+  TabDefinition,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
@@ -20,7 +20,7 @@ import { Outlet } from "react-router-dom";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
 
@@ -47,7 +47,7 @@ export function AdminLayout() {
     validateTabPaths(getTabsFromStorage() || [], router),
   );
 
-  const [config] = useState<TabConfig<Properties>[]>(() => [
+  const [config] = useState<TabDefinition<Properties>[]>(() => [
     {
       mapToUiState: (_, path) => ({
         id: path,

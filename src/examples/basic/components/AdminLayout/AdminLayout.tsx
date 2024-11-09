@@ -3,7 +3,7 @@ import { Tabs } from "../../components/Tabs/Tabs.tsx";
 
 import { TabStoreKey } from "../../constants/tabs.constants.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 

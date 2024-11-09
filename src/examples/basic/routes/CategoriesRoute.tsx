@@ -4,7 +4,7 @@ import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import { RouterTabPath, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";

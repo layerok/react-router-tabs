@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
 import {
   RouterTabPath,
-  TabConfig,
+  TabDefinition,
   useRouterTabs,
 } from "src/lib/tabs/useRouterTabs.tsx";
 import { data as categories } from "../data/categories.json";
 
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
-import { usePersistTabs } from "src/lib/tabs/persist.tsx";
+import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
@@ -43,7 +43,7 @@ export function CategoriesRoute() {
     validateTabPaths(getTabsFromStorage() || defaultTabs, router),
   );
 
-  const config = useMemo<TabConfig<TabModel>[]>(
+  const config = useMemo<TabDefinition<TabModel>[]>(
     () => [
       {
         mapToUiState: (_, path) => ({
