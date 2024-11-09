@@ -27,6 +27,7 @@ import { Button } from "src/examples/clip-one/components/Button/Button.tsx";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 import { theEnd } from "src/lib/tabs/theEnd.ts";
 import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
+import { replacePathParams } from "src/utils/replacePathParams.ts";
 
 type DetailParams = { id: string };
 
@@ -140,7 +141,11 @@ export function ProductListRoute() {
       >
         <Table
           onRowClick={(row) => {
-            navigate(productDetailRoute.replace(":id", String(row.id)));
+            navigate(
+              replacePathParams(productDetailRoute, {
+                id: row.id,
+              }),
+            );
           }}
           columns={[
             {

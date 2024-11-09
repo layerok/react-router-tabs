@@ -22,22 +22,8 @@ import {
 } from "src/examples/basic/constants/routes.constants.ts";
 import { Handle } from "src/examples/basic/types.ts";
 
-export const routeIds = {
-  product: {
-    layout: "product-layout",
-    list: "product-list",
-    detail: "product-detail",
-  },
-  category: {
-    layout: "category-layout",
-    list: "category-list",
-    detail: "category-detail",
-  },
-};
-
 const productRoutes = [
   {
-    id: routeIds.product.layout,
     path: productsRoute,
     element: <ProductsRoute />,
     handle: {
@@ -50,7 +36,6 @@ const productRoutes = [
     } as Handle,
     children: [
       {
-        id: routeIds.product.list,
         index: true,
         element: <ProductListRoute />,
         handle: {
@@ -63,7 +48,6 @@ const productRoutes = [
         } as Handle,
       },
       {
-        id: routeIds.product.detail,
         path: productDetailRoute,
         element: <ProductDetailRoute />,
         handle: {
@@ -84,7 +68,6 @@ const categoryRoutes = [
   {
     path: categoriesRoute,
     element: <CategoriesRoute />,
-    id: routeIds.category.layout,
     handle: {
       tabs: [
         {
@@ -95,7 +78,6 @@ const categoryRoutes = [
     } as Handle,
     children: [
       {
-        id: routeIds.category.list,
         index: true,
         element: <CategoryListRoute />,
         handle: {
@@ -108,7 +90,6 @@ const categoryRoutes = [
         } as Handle,
       },
       {
-        id: routeIds.category.detail,
         path: categoryDetailRoute,
         element: <CategoryDetailRoute />,
         handle: {

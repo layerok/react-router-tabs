@@ -1,5 +1,5 @@
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
-import { replacePathParams } from "src/examples/basic/utils/replacePathParams.ts";
+import { replacePathParams } from "src/utils/replacePathParams.ts";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 import { Link, useParams } from "react-router-dom";
