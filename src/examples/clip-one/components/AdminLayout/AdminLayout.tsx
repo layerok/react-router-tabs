@@ -1,6 +1,6 @@
 import { Sidebar } from "../Sidebar/Sidebar.tsx";
 import { Tabs } from "../Tabs/Tabs.tsx";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import {
@@ -29,13 +29,6 @@ const persistStoreKey = {
   version: "4.0",
 };
 
-type Properties = {
-  id: string;
-  title: string;
-  content: ReactNode;
-  isClosable: boolean;
-};
-
 export function AdminLayout() {
   const { router } = useDataRouterContext();
   const { getTabsFromStorage, persistTabs } = usePersistTabs({
@@ -47,7 +40,7 @@ export function AdminLayout() {
     validateTabPaths(getTabsFromStorage() || [], router),
   );
 
-  const [config] = useState<TabDefinition<Properties>[]>(() => [
+  const [config] = useState<TabDefinition<TabModel>[]>(() => [
     {
       mapToUiState: (_, path) => ({
         id: path,
@@ -90,26 +83,17 @@ export function AdminLayout() {
     },
   ]);
 
-  const { tabs, activeTab } = useRouterTabs<Properties>({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     config,
     paths,
+    undefinedPath: homeRoute,
     onPathsChange: setPaths,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
-  };
 
   const activeTabId = activeTab?.id;
 
@@ -131,7 +115,7 @@ export function AdminLayout() {
               initialTabs={tabs}
               hasControlledActiveTabId
               activeTabId={activeTabId}
-              onActiveTabIdChange={setActiveTabId}
+              onActiveTabIdChange={setActivePath}
             />
           </div>
         </div>

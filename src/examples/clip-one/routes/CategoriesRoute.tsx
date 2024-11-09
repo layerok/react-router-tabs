@@ -74,26 +74,17 @@ export function CategoriesRoute() {
     [],
   );
 
-  const { tabs, activeTab } = useRouterTabs({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
+    undefinedPath: homeRoute,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
-  };
 
   const setTabs = (tabs: TabModel[]) => {
     setPaths(tabs.map((tab) => tab.id));
@@ -104,7 +95,7 @@ export function CategoriesRoute() {
       <Tabs
         activeTabId={activeTab?.id}
         initialActiveTabId={activeTab?.id}
-        onActiveTabIdChange={setActiveTabId}
+        onActiveTabIdChange={setActivePath}
         tabs={tabs}
         initialTabs={tabs}
         onTabsChange={setTabs}

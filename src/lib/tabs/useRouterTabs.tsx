@@ -24,9 +24,9 @@ type MatchRouterTabResult = {
   match: DataRouteMatch;
 };
 
-export const matchRouterTab = (
+export const matchRouterTab = <UiState extends ValidUiState = ValidUiState>(
   matches: DataRouteMatch[],
-  config: TabDefinition[],
+  config: TabDefinition<UiState>[],
 ): MatchRouterTabResult | undefined => {
   for (let i = matches.length - 1; i > -1; i--) {
     const match = matches[i];
@@ -48,8 +48,9 @@ export const useRouterTabs = <
   config: TabDefinition<UiState>[];
   onPathsChange?: PathsChangeCallback;
   paths: RouterTabPath[];
+  undefinedPath: string;
 }) => {
-  const { onPathsChange, paths, config, router } = options;
+  const { onPathsChange, paths, config, router, undefinedPath } = options;
 
   const isOpenFor = useCallback(
     (match: DataRouteMatch) => (path: string) => {
@@ -85,7 +86,7 @@ export const useRouterTabs = <
       const getNextPaths = (prevPaths: RouterTabPath[]) => {
         const tab = prevPaths.find(isOpenFor(matchResult.match));
 
-        const path = getUrl(location);
+        const path = getPathFromLocation(location);
 
         if (tab) {
           // update the tab path
@@ -126,18 +127,25 @@ export const useRouterTabs = <
     .map(toUiState)
     .filter((tab): tab is UiState => Boolean(tab));
 
-  const activeTab = toUiState(getUrl(router.state.location)) as
+  const setActivePath = (path: string | undefined) => {
+    setTimeout(() => {
+      router.navigate(path || undefinedPath);
+    });
+  };
+
+  const activeTab = toUiState(getPathFromLocation(router.state.location)) as
     | UiState
     | undefined;
 
   return {
     tabs,
     activeTab,
+    setActivePath,
   };
 };
 
-const getUrl = (location: Location) => {
-  const { pathname, search } = location;
+const getPathFromLocation = (location: Location) => {
+  const { pathname, search, hash } = location;
 
-  return normalizePathname(pathname) + search;
+  return normalizePathname(pathname) + search + hash;
 };

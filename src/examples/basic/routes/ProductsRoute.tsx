@@ -45,11 +45,12 @@ export function ProductsRoute() {
     [router],
   );
 
-  const { tabs, activeTab } = useRouterTabs({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
+    undefinedPath: homeRoute,
   });
 
   useEffect(() => {
@@ -58,16 +59,6 @@ export function ProductsRoute() {
 
   const setTabs = (tabs: TabModel[]) => {
     setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
   };
 
   const activeTabId = activeTab?.id;
@@ -80,7 +71,7 @@ export function ProductsRoute() {
         onTabsChange={setTabs}
         hasControlledActiveTabId
         activeTabId={activeTabId}
-        onActiveTabIdChange={setActiveTabId}
+        onActiveTabIdChange={setActivePath}
       />
     </div>
   );

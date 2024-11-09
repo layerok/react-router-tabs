@@ -48,7 +48,7 @@ export function ProductsRoute() {
     validateTabPaths(getTabsFromStorage() || defaultTabs, router),
   );
 
-  const { tabs, activeTab } = useRouterTabs({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     config: useMemo(
       () => [
@@ -92,6 +92,7 @@ export function ProductsRoute() {
     ),
     paths,
     onPathsChange: setPaths,
+    undefinedPath: homeRoute,
   });
 
   useEffect(() => {
@@ -100,16 +101,6 @@ export function ProductsRoute() {
 
   const setTabs = (tabs: TabModel[]) => {
     setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
   };
 
   const activeTabId = activeTab?.id;
@@ -123,7 +114,7 @@ export function ProductsRoute() {
         hasControlledActiveTabId
         activeTabId={activeTabId}
         initialActiveTabId={activeTabId}
-        onActiveTabIdChange={setActiveTabId}
+        onActiveTabIdChange={setActivePath}
       />
     </div>
   );
@@ -211,27 +202,17 @@ export function ProductDetailRoute() {
     [],
   );
 
-  const { tabs, activeTab } = useRouterTabs({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
+    undefinedPath: homeRoute,
   });
 
   const setTabs = (tabs: TabModel[]) => {
     setPaths(tabs.map((tab) => tab.id));
   };
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
-  };
-
   const activeTabId = activeTab?.id;
 
   return (
@@ -243,7 +224,7 @@ export function ProductDetailRoute() {
         initialActiveTabId={activeTabId}
         hasControlledActiveTabId
         activeTabId={activeTabId}
-        onActiveTabIdChange={setActiveTabId}
+        onActiveTabIdChange={setActivePath}
       />
     </div>
   );

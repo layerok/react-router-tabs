@@ -46,10 +46,11 @@ export function AdminLayout() {
 
   console.log("config", config);
 
-  const { tabs, activeTab } = useRouterTabs({
+  const { tabs, activeTab, setActivePath } = useRouterTabs({
     router,
     paths,
     onPathsChange: setPaths,
+    undefinedPath: homeRoute,
     config: config,
   });
 
@@ -59,16 +60,6 @@ export function AdminLayout() {
 
   const setTabs = (tabs: TabModel[]) => {
     setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const setActiveTabId = (id: string | undefined) => {
-    setTimeout(() => {
-      const [pathname, search] = (id || homeRoute).split("?");
-      router.navigate({
-        pathname,
-        search,
-      });
-    });
   };
 
   const activeTabId = activeTab?.id;
@@ -85,7 +76,7 @@ export function AdminLayout() {
           onTabsChange={setTabs}
           hasControlledActiveTabId
           activeTabId={activeTabId}
-          onActiveTabIdChange={setActiveTabId}
+          onActiveTabIdChange={setActivePath}
         />
       </div>
     </div>
