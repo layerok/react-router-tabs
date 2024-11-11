@@ -3,7 +3,6 @@ import { useCallback, useEffect } from "react";
 import { RouterState } from "@remix-run/router";
 import { replaceAt, insertAt } from "src/utils/array-utils.ts";
 import { Router } from "@remix-run/router";
-import { normalizePathname } from "src/lib/tabs/normalizePathname.ts";
 
 type ValidUiState = Record<string, any>;
 
@@ -149,3 +148,6 @@ const getPathFromLocation = (location: Location) => {
 
   return normalizePathname(pathname) + search + hash;
 };
+
+const normalizePathname = (pathname: string) =>
+  pathname.endsWith("/") ? pathname : pathname + "/";
