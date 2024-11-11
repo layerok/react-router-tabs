@@ -42,8 +42,8 @@ export function AdminLayout() {
 
   const [config] = useState<TabDefinition<TabModel>[]>(() => [
     {
-      mapToUiState: (_, path) => ({
-        id: path,
+      mapToUiModel: (key) => ({
+        id: key,
         title: "Dashboard",
         content: <Outlet />,
         isClosable: true,
@@ -52,8 +52,8 @@ export function AdminLayout() {
       insertAt: theBeginning,
     },
     {
-      mapToUiState: (_, path) => ({
-        id: path,
+      mapToUiModel: (key) => ({
+        id: key,
         title: "Categories",
         content: <Outlet />,
         isClosable: true,
@@ -62,8 +62,8 @@ export function AdminLayout() {
       insertAt: theBeginning,
     },
     {
-      mapToUiState: (_, path) => ({
-        id: path,
+      mapToUiModel: (key) => ({
+        id: key,
         title: "Products",
         content: <Outlet />,
         isClosable: true,
@@ -72,8 +72,8 @@ export function AdminLayout() {
       insertAt: theBeginning,
     },
     {
-      mapToUiState: (_, path) => ({
-        id: path,
+      mapToUiModel: (key) => ({
+        id: key,
         title: "Suppliers",
         content: <Outlet />,
         isClosable: true,
@@ -83,23 +83,18 @@ export function AdminLayout() {
     },
   ]);
 
-  const { tabs, activeTab, setActivePath } = useRouterTabs({
+  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
     router,
     config,
     paths,
-    undefinedPath: homeRoute,
+    undefinedKeyPath: homeRoute,
     onPathsChange: setPaths,
+    getUiModelKey: (model) => model.id,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
-
-  const activeTabId = activeTab?.id;
-
-  const setTabs = (tabs: TabModel[]) => {
-    setPaths(tabs.map((tab) => tab.id));
-  };
 
   return (
     <div css={layoutStyles}>
@@ -111,11 +106,11 @@ export function AdminLayout() {
             <Tabs
               tabs={tabs}
               onTabsChange={setTabs}
-              initialActiveTabId={activeTabId}
+              initialActiveTabId={activeTabKey}
               initialTabs={tabs}
               hasControlledActiveTabId
-              activeTabId={activeTabId}
-              onActiveTabIdChange={setActivePath}
+              activeTabId={activeTabKey}
+              onActiveTabIdChange={setActiveTabKey}
             />
           </div>
         </div>

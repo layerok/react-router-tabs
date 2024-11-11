@@ -2,8 +2,6 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import { RouterTabPath, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
-
-import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
@@ -48,25 +46,20 @@ export function CategoriesRoute() {
     [router],
   );
 
-  const { tabs, activeTab, setActivePath } = useRouterTabs({
+  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedPath: homeRoute,
+    undefinedKeyPath: homeRoute,
+    getUiModelKey: (model) => model.id,
   });
-
-  const setTabs = (tabs: TabModel[]) => {
-    setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const activeTabId = activeTab?.id;
 
   return (
     <div>
       <Tabs
-        activeTabId={activeTabId}
-        onActiveTabIdChange={setActivePath}
+        activeTabId={activeTabKey}
+        onActiveTabIdChange={setActiveTabKey}
         tabs={tabs}
         initialTabs={tabs}
         onTabsChange={setTabs}

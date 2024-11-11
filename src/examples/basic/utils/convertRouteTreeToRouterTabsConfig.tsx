@@ -9,20 +9,20 @@ import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
 export const convertRouteTreeToRouterTabsConfig = (
   tree: RouteObject[],
   key: any,
-) => {
+): TabDefinition<TabModel>[] => {
   const flatRoutes = flattenRoutes(tree);
 
   const matchedRoutes = flatRoutes.filter((route) => {
     return (route.handle as Handle)?.tabs.find((tab) => tab.key === key);
   });
 
-  const config: TabDefinition<TabModel>[] = matchedRoutes.map((route) => {
+  return matchedRoutes.map((route) => {
     const handle = route.handle as Handle;
     const tabMeta = handle.tabs.find((tab) => (tab.key = key));
 
     return {
-      mapToUiState: (match, path) => ({
-        id: path,
+      mapToUiModel: (key, match) => ({
+        id: key,
         title: tabMeta!.title(match),
         isClosable: true,
         content: <Outlet />,
@@ -31,5 +31,4 @@ export const convertRouteTreeToRouterTabsConfig = (
       insertAt: tabMeta!.insertAt || theBeginning,
     };
   });
-  return config;
 };

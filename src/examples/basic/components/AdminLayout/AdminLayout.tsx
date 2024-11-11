@@ -14,7 +14,6 @@ import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
 import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
-import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { TabsApi } from "src/lib/tabs-ui/useTabs.tsx";
 
 const persistStoreKey = {
@@ -44,23 +43,18 @@ export function AdminLayout() {
     [router],
   );
 
-  const { tabs, activeTab, setActivePath } = useRouterTabs({
+  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
     router,
     paths,
     onPathsChange: setPaths,
-    undefinedPath: homeRoute,
+    undefinedKeyPath: homeRoute,
     config: config,
+    getUiModelKey: (model) => model.id,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
-
-  const setTabs = (tabs: TabModel[]) => {
-    setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const activeTabId = activeTab?.id;
 
   return (
     <div css={layoutStyles}>
@@ -73,8 +67,8 @@ export function AdminLayout() {
           initialTabs={tabs}
           onTabsChange={setTabs}
           hasControlledActiveTabId
-          activeTabId={activeTabId}
-          onActiveTabIdChange={setActivePath}
+          activeTabId={activeTabKey}
+          onActiveTabIdChange={setActiveTabKey}
         />
       </div>
     </div>

@@ -46,8 +46,8 @@ export function CategoriesRoute() {
   const config = useMemo<TabDefinition<TabModel>[]>(
     () => [
       {
-        mapToUiState: (_, path) => ({
-          id: path,
+        mapToUiModel: (key) => ({
+          id: key,
           title: "All Categories",
           content: <Outlet />,
           isClosable: false,
@@ -56,8 +56,8 @@ export function CategoriesRoute() {
         insertAt: theBeginning,
       },
       {
-        mapToUiState: (match, path) => ({
-          id: path,
+        mapToUiModel: (key, match) => ({
+          id: key,
           title: (() => {
             const category = categories.find(
               (category) => String(category.id) == match.params.id,
@@ -74,28 +74,25 @@ export function CategoriesRoute() {
     [],
   );
 
-  const { tabs, activeTab, setActivePath } = useRouterTabs({
+  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedPath: homeRoute,
+    undefinedKeyPath: homeRoute,
+    getUiModelKey: (model) => model.id,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
 
-  const setTabs = (tabs: TabModel[]) => {
-    setPaths(tabs.map((tab) => tab.id));
-  };
-
   return (
     <div css={layoutStyles}>
       <Tabs
-        activeTabId={activeTab?.id}
-        initialActiveTabId={activeTab?.id}
-        onActiveTabIdChange={setActivePath}
+        activeTabId={activeTabKey}
+        initialActiveTabId={activeTabKey}
+        onActiveTabIdChange={setActiveTabKey}
         tabs={tabs}
         initialTabs={tabs}
         onTabsChange={setTabs}

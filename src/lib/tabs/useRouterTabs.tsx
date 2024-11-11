@@ -9,7 +9,11 @@ type ValidUiState = Record<string, any>;
 export type TabDefinition<UiState extends ValidUiState = ValidUiState> = {
   shouldOpen: (match: DataRouteMatch) => boolean;
   insertAt: (tabs: RouterTabPath[]) => number;
-  mapToUiState: (match: DataRouteMatch, path: RouterTabPath) => UiState;
+  mapToUiModel: (
+    key: string,
+    match: DataRouteMatch,
+    fullPath: RouterTabPath,
+  ) => UiState;
 };
 
 export type RouterTabPath = string;
@@ -47,9 +51,19 @@ export const useRouterTabs = <
   config: TabDefinition<UiState>[];
   onPathsChange?: PathsChangeCallback;
   paths: RouterTabPath[];
-  undefinedPath: string;
+  getUiModelKey: (model: UiState) => string;
+  undefinedKeyPath: string;
 }) => {
-  const { onPathsChange, paths, config, router, undefinedPath } = options;
+  const {
+    onPathsChange,
+    paths,
+    config,
+    router,
+    undefinedKeyPath,
+    getUiModelKey,
+  } = options;
+
+  const getTabKey = (match: DataRouteMatch) => match.pathname;
 
   const isOpenFor = useCallback(
     (match: DataRouteMatch) => (path: string) => {
@@ -119,27 +133,53 @@ export const useRouterTabs = <
       return undefined;
     }
     const { definition, match } = result;
-    return definition.mapToUiState(match, path);
+    const key = getTabKey(match);
+    return definition.mapToUiModel(key, match, path);
   };
+
+  const reducer = (acc: Record<string, string>, path: string) => {
+    const matches = matchRoutes(router.routes, path) || [];
+    const result = matchRouterTab(matches, config);
+
+    if (!result) {
+      return acc;
+    }
+    const { match } = result;
+    const key = getTabKey(match);
+
+    return {
+      ...acc,
+      [key]: path,
+    };
+  };
+
+  const keyToFullPathMap = paths.reduce(reducer, {} as Record<string, string>);
 
   const tabs = paths
     .map(toUiState)
     .filter((tab): tab is UiState => Boolean(tab));
 
-  const setActivePath = (path: string | undefined) => {
-    setTimeout(() => {
-      router.navigate(path || undefinedPath);
-    });
+  const setTabs = (tabs: UiState[]) => {
+    onPathsChange?.(tabs.map((tab) => keyToFullPathMap[getUiModelKey(tab)]));
+  };
+
+  const setActiveTabKey = (key: string | undefined) => {
+    const path = key ? keyToFullPathMap[key] : undefinedKeyPath;
+    router.navigate(path);
   };
 
   const activeTab = toUiState(getPathFromLocation(router.state.location)) as
     | UiState
     | undefined;
 
+  const activeTabKey = activeTab ? getUiModelKey(activeTab) : undefined;
+
   return {
     tabs,
     activeTab,
-    setActivePath,
+    activeTabKey,
+    setActiveTabKey,
+    setTabs,
   };
 };
 

@@ -1,6 +1,5 @@
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
 import { replacePathParams } from "src/utils/replacePathParams.ts";
-import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
@@ -45,23 +44,18 @@ export function ProductsRoute() {
     [router],
   );
 
-  const { tabs, activeTab, setActivePath } = useRouterTabs({
+  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedPath: homeRoute,
+    undefinedKeyPath: homeRoute,
+    getUiModelKey: (model) => model.id,
   });
 
   useEffect(() => {
     return persistTabs(paths);
   }, [paths, persistTabs]);
-
-  const setTabs = (tabs: TabModel[]) => {
-    setPaths(tabs.map((tab) => tab.id));
-  };
-
-  const activeTabId = activeTab?.id;
 
   return (
     <div>
@@ -70,8 +64,8 @@ export function ProductsRoute() {
         initialTabs={tabs}
         onTabsChange={setTabs}
         hasControlledActiveTabId
-        activeTabId={activeTabId}
-        onActiveTabIdChange={setActivePath}
+        activeTabId={activeTabKey}
+        onActiveTabIdChange={setActiveTabKey}
       />
     </div>
   );
