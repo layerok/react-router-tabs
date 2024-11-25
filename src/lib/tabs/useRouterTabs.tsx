@@ -63,7 +63,8 @@ export const useRouterTabs = <
     getUiModelKey,
   } = options;
 
-  const getTabKey = (match: DataRouteMatch) => match.pathname;
+  const getTabKey = (match: DataRouteMatch) =>
+    normalizePathname(match.pathname);
 
   const isOpenFor = useCallback(
     (match: DataRouteMatch) => (path: string) => {
