@@ -8,14 +8,20 @@ import React, {
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
 import { removeItem } from "src/utils/array-utils.ts";
 
+type StateListener = (state: State, partialState: Partial<State>) => void;
+
+type Disposer = () => void;
+
 export type TabsApi = {
-  setTabs: (tabs: TabModel[], runHandlers?: boolean) => void;
-  setActiveTabId: (id: string | undefined, runHandlers?: boolean) => void;
+  listeners: Set<StateListener>;
+  subscribe: (cb: StateListener) => Disposer;
+  setTabs: (tabs: TabModel[], emitEvents?: boolean) => void;
+  setActiveTabId: (id: string | undefined, emitEvents?: boolean) => void;
   getState: () => State;
   getActiveTab: () => TabModel | undefined;
   setState: (
     state: Partial<State> | { (prevState: State): Partial<State> },
-    runHandlers?: boolean,
+    emitEvents?: boolean,
   ) => void;
   forceUpdate: () => void;
   closeTab: (tab: TabModel) => void;
@@ -23,6 +29,8 @@ export type TabsApi = {
   unregisterChildTabsApi: () => void;
   registerParentTabsApi: (parentTabsApi: TabsApi) => void;
   unregisterParentTabsApi: () => void;
+  setStartPinnedTabs: (ids: string[], emitEvents: boolean) => void;
+  setEndPinnedTabs: (ids: string[], emitEvents: boolean) => void;
 };
 
 export type TabsProps = {
@@ -95,13 +103,13 @@ const useActive = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
   const { hasControlledActiveTabId, activeTabId } = props;
   apiRef.current["setActiveTabId"] = (
     id: string | undefined,
-    runHandlers = true,
+    emitEvents = true,
   ) => {
     apiRef.current.setState(
       {
         activeTabId: id,
       },
-      runHandlers,
+      emitEvents,
     );
     apiRef.current.forceUpdate();
   };
@@ -109,19 +117,14 @@ const useActive = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     const { tabs, activeTabId } = apiRef.current.getState();
     return tabs.find((tab) => tab.id === activeTabId);
   };
-  useEffect(() => {
-    if (hasControlledActiveTabId) {
-      apiRef.current.setActiveTabId(activeTabId, false);
-    }
-  }, [hasControlledActiveTabId, activeTabId, apiRef]);
+  const state = apiRef.current.getState();
+  if (hasControlledActiveTabId && state.activeTabId !== activeTabId) {
+    apiRef.current.setActiveTabId(activeTabId, false);
+  }
 };
 
 const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
   const {
-    onTabsChange,
-    onActiveTabIdChange,
-    onStartPinnedTabsChange,
-    onEndPinnedTabsChange,
     initialTabs = [],
     initialActiveTabId,
     initialStartPinnedTabs = [],
@@ -143,35 +146,23 @@ const useTabsState = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
 
   apiRef.current["setState"] = (
     stateOrFn: Partial<State> | { (state: State): Partial<State> },
-    runHandlers = true,
+    emitEvents = true,
   ) => {
     const newState =
       typeof stateOrFn === "function" ? stateOrFn(stateRef.current) : stateOrFn;
 
-    const subStateKeys: (keyof State)[] = Object.keys(
-      newState,
-    ) as unknown as (keyof State)[];
-
-    if (runHandlers) {
-      subStateKeys.forEach((subStateKey) => {
-        const subState = newState[subStateKey];
-        const subStateChangeHandler = {
-          tabs: onTabsChange,
-          activeTabId: onActiveTabIdChange,
-          startPinnedTabs: onStartPinnedTabsChange,
-          endPinnedTabs: onEndPinnedTabsChange,
-          childTabsApi: () => {},
-          parentTabsApi: () => {},
-        }[subStateKey];
-        // @ts-ignore
-        subStateChangeHandler?.(subState);
-      });
-    }
-
-    stateRef.current = {
+    const mergedNewState = {
       ...stateRef.current,
       ...newState,
     };
+
+    if (emitEvents) {
+      [...apiRef.current.listeners].forEach((listener) => {
+        listener(mergedNewState, newState);
+      });
+    }
+
+    stateRef.current = mergedNewState;
   };
 };
 
@@ -181,12 +172,12 @@ const usePinning = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
     endPinnedTabs: endPinnedTabsProp,
   } = props;
   const setStartPinnedTabs = useCallback(
-    (ids: string[], runHandlers = true) => {
+    (ids: string[], emitEvents = true) => {
       apiRef.current.setState(
         {
           startPinnedTabs: ids,
         },
-        runHandlers,
+        emitEvents,
       );
       apiRef.current.forceUpdate();
     },
@@ -194,29 +185,33 @@ const usePinning = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
   );
 
   const setEndPinnedTabs = useCallback(
-    (ids: string[], runHandlers = true) => {
+    (ids: string[], emitEvents = true) => {
       apiRef.current.setState(
         {
           endPinnedTabs: ids,
         },
-        runHandlers,
+        emitEvents,
       );
       apiRef.current.forceUpdate();
     },
     [apiRef],
   );
+  apiRef.current["setStartPinnedTabs"] = setStartPinnedTabs;
+  apiRef.current["setEndPinnedTabs"] = setEndPinnedTabs;
+  const state = apiRef.current.getState();
 
-  useEffect(() => {
-    if (startPinnedTabsProp) {
-      setStartPinnedTabs(startPinnedTabsProp, false);
-    }
-  }, [startPinnedTabsProp, setStartPinnedTabs]);
-
-  useEffect(() => {
-    if (endPinnedTabsProp) {
-      setEndPinnedTabs(endPinnedTabsProp, false);
-    }
-  }, [endPinnedTabsProp, setEndPinnedTabs]);
+  if (
+    startPinnedTabsProp &&
+    state.startPinnedTabs.join("") != startPinnedTabsProp.join("")
+  ) {
+    apiRef.current.setStartPinnedTabs(startPinnedTabsProp, false);
+  }
+  if (
+    endPinnedTabsProp &&
+    state.endPinnedTabs.join("") != endPinnedTabsProp.join("")
+  ) {
+    apiRef.current.setEndPinnedTabs(endPinnedTabsProp, false);
+  }
 };
 
 const useChildTabsApi = (apiRef: MutableRefObject<TabsApi>) => {
@@ -258,32 +253,79 @@ const useChildTabsApi = (apiRef: MutableRefObject<TabsApi>) => {
 };
 
 const useTabModels = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
-  const { tabs: tabsProp } = props;
-  apiRef.current["setTabs"] = (tabs: TabModel[], runHandlers = true) => {
+  const { tabs: tabsFromProps } = props;
+
+  apiRef.current["setTabs"] = (tabs: TabModel[], emitEvents = true) => {
     apiRef.current.setState(
       {
         tabs,
       },
-      runHandlers,
+      emitEvents,
     );
     apiRef.current.forceUpdate();
   };
 
-  useEffect(() => {
-    if (tabsProp) {
-      apiRef.current.setTabs(tabsProp, false);
-    }
-  }, [tabsProp, apiRef]);
+  const { tabs: prevTabs } = apiRef.current.getState();
+
+  const hashTabs = (tabs: TabModel[]) => {
+    return tabs.map((tab) => tab.id).join("");
+  };
+
+  if (tabsFromProps && hashTabs(prevTabs) != hashTabs(tabsFromProps)) {
+    apiRef.current.setTabs(tabsFromProps, false);
+  }
 };
 
 export const useTabs = (
   apiRef: MutableRefObject<TabsApi>,
   props: TabsProps,
 ) => {
+  const {
+    onTabsChange,
+    onActiveTabIdChange,
+    onStartPinnedTabsChange,
+    onEndPinnedTabsChange,
+  } = props;
   apiRef.current["forceUpdate"] = useForceRerender();
 
-  useTabModels(apiRef, props);
+  if (!apiRef.current.listeners) {
+    apiRef.current.listeners = new Set<StateListener>();
+  }
+
+  apiRef.current["subscribe"] = (cb: StateListener) => {
+    apiRef.current.listeners.add(cb);
+    return () => {
+      apiRef.current.listeners.delete(cb);
+    };
+  };
+
+  useEffect(() => {
+    const handlersMap = {
+      tabs: onTabsChange,
+      activeTabId: onActiveTabIdChange,
+      startPinnedTabs: onStartPinnedTabsChange,
+      endPinnedTabs: onEndPinnedTabsChange,
+    };
+    return apiRef.current.subscribe((_, partialState) => {
+      Object.keys(partialState).forEach((subStateKey) => {
+        const subState = partialState[subStateKey as keyof State];
+        // @ts-ignore
+        const subStateChangeHandler = handlersMap[subStateKey];
+        // @ts-ignore
+        subStateChangeHandler?.(subState);
+      });
+    });
+  }, [
+    apiRef,
+    onTabsChange,
+    onActiveTabIdChange,
+    onStartPinnedTabsChange,
+    onEndPinnedTabsChange,
+  ]);
+
   useTabsState(apiRef, props);
+  useTabModels(apiRef, props);
+
   useClosing(apiRef);
   usePinning(apiRef, props);
   useActive(apiRef, props);
