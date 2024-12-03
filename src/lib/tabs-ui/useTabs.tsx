@@ -267,11 +267,7 @@ const useTabModels = (apiRef: MutableRefObject<TabsApi>, props: TabsProps) => {
 
   const { tabs: prevTabs } = apiRef.current.getState();
 
-  const hashTabs = (tabs: TabModel[]) => {
-    return tabs.map((tab) => tab.id).join("");
-  };
-
-  if (tabsFromProps && hashTabs(prevTabs) != hashTabs(tabsFromProps)) {
+  if (tabsFromProps && prevTabs != tabsFromProps) {
     apiRef.current.setTabs(tabsFromProps, false);
   }
 };
