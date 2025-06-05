@@ -1,89 +1,40 @@
-import { DataRouteMatch, Location, matchRoutes } from "react-router-dom";
-import { useCallback, useEffect } from "react";
-import { RouterState } from "@remix-run/router";
-import { replaceAt, insertAt } from "src/utils/array-utils.ts";
-import { Router } from "@remix-run/router";
+import { type DataRouteMatch, matchRoutes } from "react-router-dom";
+import { useCallback, useEffect, useMemo } from "react";
+import type { Router, RouterState } from "@remix-run/router";
 
-type ValidUiState = Record<string, any>;
+import { useLocation } from "react-router";
+import { insertAt, replaceAt } from "src/utils/array-utils.ts";
+import { Location } from "@remix-run/router/history.ts";
 
-export type TabDefinition<UiState extends ValidUiState = ValidUiState> = {
+type ValidUiModel = Record<string, any>;
+export type RouterTabPath = string;
+
+export type TabDefinition<UiModel extends ValidUiModel = ValidUiModel> = {
   shouldOpen: (match: DataRouteMatch) => boolean;
   insertAt: (tabs: RouterTabPath[]) => number;
   mapToUiModel: (
-    key: string,
+    id: string,
     match: DataRouteMatch,
-    fullPath: RouterTabPath,
-  ) => UiState;
+    path: RouterTabPath,
+  ) => UiModel;
 };
 
-export type RouterTabPath = string;
-
-type PathsChangeCallback = (
-  paths: RouterTabPath[] | { (prevPaths: RouterTabPath[]): RouterTabPath[] },
-) => void;
-
-type MatchRouterTabResult = {
-  definition: TabDefinition;
-  match: DataRouteMatch;
-};
-
-export const matchRouterTab = <UiState extends ValidUiState = ValidUiState>(
-  matches: DataRouteMatch[],
-  config: TabDefinition<UiState>[],
-): MatchRouterTabResult | undefined => {
-  for (let i = matches.length - 1; i > -1; i--) {
-    const match = matches[i];
-    const definition = config.find((def) => def.shouldOpen(match));
-    if (definition) {
-      return {
-        definition,
-        match,
-      };
-    }
-  }
-  return undefined;
-};
-
-export const useRouterTabs = <
-  UiState extends ValidUiState = ValidUiState,
->(options: {
+export const useRouterTabs = <UiModel extends ValidUiModel = ValidUiModel>({
+  paths,
+  onPathsChange,
+  config,
+  router,
+  fallbackPath,
+}: {
   router: Router;
-  config: TabDefinition<UiState>[];
-  onPathsChange?: PathsChangeCallback;
-  paths: RouterTabPath[];
-  getUiModelKey: (model: UiState) => string;
-  undefinedKeyPath: string;
+  paths: string[];
+  fallbackPath: string;
+  config: TabDefinition<UiModel>[];
+  onPathsChange: { (paths: string[] | { (paths: string[]): string[] }): void };
 }) => {
-  const {
-    onPathsChange,
-    paths,
-    config,
-    router,
-    undefinedKeyPath,
-    getUiModelKey,
-  } = options;
+  const location = useLocation();
 
-  const getTabKey = (match: DataRouteMatch) =>
-    normalizePathname(match.pathname);
-
-  const isOpenFor = useCallback(
-    (match: DataRouteMatch) => (path: string) => {
-      const matches = matchRoutes(router.routes, path) || [];
-      const result = matchRouterTab(matches, config);
-
-      if (!result) {
-        return false;
-      }
-
-      return (
-        normalizePathname(result.match.pathname) ===
-        normalizePathname(match.pathname)
-      );
-    },
-    [router.routes, config],
-  );
-
-  const updateTabs = useCallback(
+  const syncTabs = useCallback(
     (state: RouterState) => {
       const { matches, location, navigation } = state;
 
@@ -91,103 +42,191 @@ export const useRouterTabs = <
         return;
       }
 
-      const matchResult = matchRouterTab(matches, config);
+      for (let i = matches.length - 1; i > -1; i--) {
+        const match = matches[i];
 
-      if (!matchResult) {
-        return;
-      }
+        for (let i = 0; i < config.length; i++) {
+          const def = config[i];
+          if (!def.shouldOpen(match)) {
+            continue;
+          }
 
-      const getNextPaths = (prevPaths: RouterTabPath[]) => {
-        const tab = prevPaths.find(isOpenFor(matchResult.match));
-
-        const path = getPathFromLocation(location);
-
-        if (tab) {
-          // update the tab path
-          const index = prevPaths.indexOf(tab);
-
-          return replaceAt(prevPaths, index, path);
-        } else {
-          return insertAt(
-            prevPaths,
-            matchResult.definition.insertAt(prevPaths),
-            path,
+          onPathsChange?.(
+            getPathsUpdater({
+              def,
+              match,
+              router,
+              location,
+            }),
           );
+          return;
         }
-      };
-      onPathsChange?.(getNextPaths);
+      }
     },
-    [config, onPathsChange, isOpenFor],
+    [router, onPathsChange, config],
   );
 
   useEffect(() => {
     // fire immediately
-    updateTabs(router.state);
-    return router.subscribe(updateTabs);
-  }, [router, updateTabs]);
+    syncTabs(router.state);
+    return router.subscribe(syncTabs);
+  }, [syncTabs, router]);
 
-  const toUiState = (path: string) => {
-    const matches = matchRoutes(router.routes, path) || [];
-    const result = matchRouterTab(matches, config);
+  const tabs = useMemo(() => {
+    return paths
+      .map((path) =>
+        convertPathToUiModel({
+          path,
+          config,
+          router,
+        }),
+      )
+      .filter((tab): tab is UiModel => !!tab);
+  }, [paths, config, router]);
+  const { pathname, search, hash } = location;
 
-    if (!result) {
-      return undefined;
-    }
-    const { definition, match } = result;
-    const key = getTabKey(match);
-    return definition.mapToUiModel(key, match, path);
-  };
+  const currentPath = normalizePathname(pathname) + search + hash;
 
-  const reducer = (acc: Record<string, string>, path: string) => {
-    const matches = matchRoutes(router.routes, path) || [];
-    const result = matchRouterTab(matches, config);
+  const currentModel = useMemo(() => {
+    return convertPathToUiModel({
+      path: currentPath,
+      config,
+      router,
+    });
+  }, [currentPath, config, router]);
 
-    if (!result) {
-      return acc;
-    }
-    const { match } = result;
-    const key = getTabKey(match);
+  const activeTabId = currentModel?.id;
 
-    return {
-      ...acc,
-      [key]: path,
-    };
-  };
+  const idToPathMap = useMemo(() => {
+    return convertPathsToIdMap({
+      paths,
+      config,
+      router,
+    });
+  }, [paths, router, config]);
 
-  const keyToFullPathMap = paths.reduce(reducer, {} as Record<string, string>);
+  const handleTabsChange = useCallback(
+    (tabs: UiModel[]) => {
+      onPathsChange?.(tabs.map((tab) => idToPathMap[tab.id]));
+    },
+    [onPathsChange, idToPathMap],
+  );
 
-  const tabs = paths
-    .map(toUiState)
-    .filter((tab): tab is UiState => Boolean(tab));
-
-  const setTabs = (tabs: UiState[]) => {
-    onPathsChange?.(tabs.map((tab) => keyToFullPathMap[getUiModelKey(tab)]));
-  };
-
-  const setActiveTabKey = (key: string | undefined) => {
-    const path = key ? keyToFullPathMap[key] : undefinedKeyPath;
-    router.navigate(path);
-  };
-
-  const activeTab = toUiState(getPathFromLocation(router.state.location)) as
-    | UiState
-    | undefined;
-
-  const activeTabKey = activeTab ? getUiModelKey(activeTab) : undefined;
-
+  const handleActiveTabIdChange = useCallback(
+    (id: string | undefined) => {
+      if (id) {
+        router.navigate(idToPathMap[id]);
+      } else {
+        router.navigate(fallbackPath);
+      }
+    },
+    [router, fallbackPath, idToPathMap],
+  );
   return {
     tabs,
-    activeTab,
-    activeTabKey,
-    setActiveTabKey,
-    setTabs,
+    activeTabId,
+    onActiveTabIdChange: handleActiveTabIdChange,
+    onTabsChange: handleTabsChange,
   };
 };
 
-const getPathFromLocation = (location: Location) => {
-  const { pathname, search, hash } = location;
+const getPathsUpdater =
+  <UiModel extends ValidUiModel = ValidUiModel>({
+    router,
+    match,
+    def,
+    location,
+  }: {
+    router: Router;
+    match: DataRouteMatch;
+    def: TabDefinition<UiModel>;
+    location: Location;
+  }) =>
+  (prevPaths: RouterTabPath[]) => {
+    const existingPath = prevPaths.find((path: string) => {
+      const matches = matchRoutes(router.routes, path) || [];
 
-  return normalizePathname(pathname) + search + hash;
+      for (let i = matches.length - 1; i > -1; i--) {
+        const match_ = matches[i];
+
+        if (
+          normalizePathname(match_.pathname) ===
+          normalizePathname(match.pathname)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (existingPath) {
+      // update the tab path
+      const index = prevPaths.indexOf(existingPath);
+      const { pathname, search, hash } = location;
+
+      const path = normalizePathname(pathname) + search + hash;
+      return replaceAt(prevPaths, index, path);
+    } else {
+      const { pathname, search, hash } = location;
+
+      const path = normalizePathname(pathname) + search + hash;
+      return insertAt(prevPaths, def.insertAt(prevPaths), path);
+    }
+  };
+
+const convertPathToUiModel = <UiModel extends ValidUiModel = ValidUiModel>({
+  router,
+  path,
+  config,
+}: {
+  router: Router;
+  path: string;
+  config: TabDefinition<UiModel>[];
+}): UiModel | undefined => {
+  const matches = matchRoutes(router.routes, path) || [];
+
+  for (let i = matches.length - 1; i > -1; i--) {
+    const match = matches[i];
+    for (let i = 0; i < config.length; i++) {
+      const def = config[i];
+      if (def.shouldOpen(match)) {
+        const id = normalizePathname(match.pathname);
+        return def.mapToUiModel(id, match, path);
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const convertPathsToIdMap = <UiModel extends ValidUiModel = ValidUiModel>({
+  paths,
+  config,
+  router,
+}: {
+  config: TabDefinition<UiModel>[];
+  router: Router;
+  paths: RouterTabPath[];
+}) => {
+  return paths.reduce(
+    (acc, path: RouterTabPath) => {
+      const matches = matchRoutes(router.routes, path) || [];
+
+      for (let i = matches.length - 1; i > -1; i--) {
+        const match = matches[i];
+
+        if (config.find((def) => def.shouldOpen(match))) {
+          return {
+            ...acc,
+            [normalizePathname(match.pathname)]: path,
+          };
+        }
+      }
+
+      return acc;
+    },
+    {} as Record<string, RouterTabPath>,
+  );
 };
 
 const normalizePathname = (pathname: string) =>

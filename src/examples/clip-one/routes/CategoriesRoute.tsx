@@ -2,11 +2,7 @@ import { Outlet, useNavigate, useParams } from "react-router-dom";
 
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "../components/Tabs/Tabs.tsx";
-import {
-  RouterTabPath,
-  TabDefinition,
-  useRouterTabs,
-} from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath, TabDefinition } from "src/lib/tabs/useRouterTabs.tsx";
 import { data as categories } from "../data/categories.json";
 
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
@@ -23,6 +19,7 @@ import { css } from "@emotion/react";
 import { Table } from "src/examples/clip-one/components/Table/Table.tsx";
 import { theBeginning } from "src/lib/tabs/theBeginning.ts";
 import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "clip-one__category-tabs",
@@ -74,13 +71,17 @@ export function CategoriesRoute() {
     [],
   );
 
-  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
+  const {
+    tabs,
+    onTabsChange: setTabs,
+    activeTabId: activeTabKey,
+    onActiveTabIdChange: setActiveTabKey,
+  } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedKeyPath: homeRoute,
-    getUiModelKey: (model) => model.id,
+    fallbackPath: homeRoute,
   });
 
   useEffect(() => {

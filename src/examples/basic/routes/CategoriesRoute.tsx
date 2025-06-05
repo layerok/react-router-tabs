@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Tabs } from "src/examples/basic/components/Tabs/Tabs.tsx";
-import { RouterTabPath, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath } from "src/lib/tabs/useRouterTabs.tsx";
 import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
@@ -13,6 +13,7 @@ import {
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
 import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "basic__category-tabs",
@@ -46,13 +47,17 @@ export function CategoriesRoute() {
     [router],
   );
 
-  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
+  const {
+    tabs,
+    onTabsChange: setTabs,
+    activeTabId: activeTabKey,
+    onActiveTabIdChange: setActiveTabKey,
+  } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedKeyPath: homeRoute,
-    getUiModelKey: (model) => model.id,
+    fallbackPath: homeRoute,
   });
 
   return (

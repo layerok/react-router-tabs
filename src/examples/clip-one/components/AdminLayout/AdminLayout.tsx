@@ -10,11 +10,7 @@ import {
   productsRoute,
   suppliersRoute,
 } from "../../constants/routes.constants.ts";
-import {
-  RouterTabPath,
-  TabDefinition,
-  useRouterTabs,
-} from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath, TabDefinition } from "src/lib/tabs/useRouterTabs.tsx";
 import { css } from "@emotion/react";
 import { Outlet } from "react-router-dom";
 import { TabModel } from "src/lib/tabs-ui/tabs-ui.types.ts";
@@ -23,6 +19,7 @@ import { validateTabPaths } from "src/lib/tabs/validateTabPaths.ts";
 import { usePersistTabs } from "src/lib/tabs/usePersistTabs.tsx";
 import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { whenRoutePathIs } from "src/lib/tabs/whenRoutePathIs.ts";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "clip-one__main-tabs",
@@ -83,14 +80,23 @@ export function AdminLayout() {
     },
   ]);
 
-  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
-    router,
-    config,
-    paths,
-    undefinedKeyPath: homeRoute,
-    onPathsChange: setPaths,
-    getUiModelKey: (model) => model.id,
-  });
+  const { tabs, onTabsChange, onActiveTabIdChange, activeTabId } =
+    useRouterTabs<TabModel>({
+      router,
+      config,
+      paths,
+      fallbackPath: homeRoute,
+      onPathsChange: setPaths,
+    });
+
+  const tabsComponentProps = {
+    tabs,
+    onTabsChange,
+    initialActiveTabId: activeTabId,
+    hasControlledActiveTabId: true,
+    activeTabId,
+    onActiveTabIdChange,
+  };
 
   useEffect(() => {
     return persistTabs(paths);
@@ -103,15 +109,7 @@ export function AdminLayout() {
         <Sidebar />
         <div css={contentStyles}>
           <div css={tabsStyles}>
-            <Tabs
-              tabs={tabs}
-              onTabsChange={setTabs}
-              initialActiveTabId={activeTabKey}
-              initialTabs={tabs}
-              hasControlledActiveTabId
-              activeTabId={activeTabKey}
-              onActiveTabIdChange={setActiveTabKey}
-            />
+            <Tabs {...tabsComponentProps} />
           </div>
         </div>
       </div>

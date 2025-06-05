@@ -14,8 +14,9 @@ import {
   productsListRoute,
 } from "src/examples/basic/constants/routes.constants.ts";
 import { TabStoreKey } from "src/examples/basic/constants/tabs.constants.ts";
-import { RouterTabPath, useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
+import { RouterTabPath } from "src/lib/tabs/useRouterTabs.tsx";
 import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "basic__product-tabs",
@@ -44,13 +45,17 @@ export function ProductsRoute() {
     [router],
   );
 
-  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
+  const {
+    tabs,
+    onTabsChange: setTabs,
+    activeTabId: activeTabKey,
+    onActiveTabIdChange: setActiveTabKey,
+  } = useRouterTabs({
     router,
     config,
     paths,
     onPathsChange: setPaths,
-    undefinedKeyPath: homeRoute,
-    getUiModelKey: (model) => model.id,
+    fallbackPath: homeRoute,
   });
 
   useEffect(() => {

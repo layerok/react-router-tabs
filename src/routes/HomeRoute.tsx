@@ -10,10 +10,10 @@ export function HomeRoute() {
         <h1 css={titleStyles}>Examples:</h1>
         <ul>
           <li css={listItemStyles}>
-            <Link to={basicHomeRoute}>Basic</Link>
+            <Link to={clipOneHomeRoute}>Clip one admin</Link>
           </li>
           <li css={listItemStyles}>
-            <Link to={clipOneHomeRoute}>Clip one admin</Link>
+            <Link to={basicHomeRoute}>Basic</Link>
           </li>
         </ul>
       </div>

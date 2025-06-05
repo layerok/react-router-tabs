@@ -12,9 +12,9 @@ import { localStorageDriver } from "src/lib/storage/local-storage.ts";
 import { useDataRouterContext } from "src/hooks/useDataRouterContext.tsx";
 import { homeRoute } from "../../constants/routes.constants.ts";
 import { css } from "@emotion/react";
-import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 import { convertRouteTreeToRouterTabsConfig } from "src/examples/basic/utils/convertRouteTreeToRouterTabsConfig.tsx";
 import { TabsApi } from "src/lib/tabs-ui/useTabs.tsx";
+import { useRouterTabs } from "src/lib/tabs/useRouterTabs.tsx";
 
 const persistStoreKey = {
   name: "basic__main-tabs",
@@ -43,13 +43,17 @@ export function AdminLayout() {
     [router],
   );
 
-  const { tabs, setTabs, activeTabKey, setActiveTabKey } = useRouterTabs({
+  const {
+    tabs,
+    onTabsChange: setTabs,
+    activeTabId: activeTabKey,
+    onActiveTabIdChange: setActiveTabKey,
+  } = useRouterTabs({
     router,
     paths,
     onPathsChange: setPaths,
-    undefinedKeyPath: homeRoute,
+    fallbackPath: homeRoute,
     config: config,
-    getUiModelKey: (model) => model.id,
   });
 
   useEffect(() => {
